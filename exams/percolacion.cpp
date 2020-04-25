@@ -9,7 +9,7 @@
 
 using namespace std;
 
-#define DELTA_P 0.001
+#define DELTA_P 0.01
 #define PAD 8
 
 void clear(queue<pair<int, int>> &q) {
