@@ -9,11 +9,7 @@
 
 using namespace std;
 
-#define DELTA_P 0.01
-#define ROCKS_PER_SIMULATION 10000
-#define M 50
-#define N 20
-
+#define DELTA_P 0.001
 #define PAD 8
 
 bool find_path(int m, int n, bool **rock) {
@@ -88,8 +84,24 @@ bool** simulate_rock(int m, int n, double threshold, int seed) {
     return rock;
 }
 
-int main() {
-    freopen("results.csv", "w", stdout);
+int main(int argc, char *argv[]) {
+    if(argc < 3) {
+        printf("Wrong arguments!\n");
+        return -1;
+    }
+
+    int ROCKS_PER_SIMULATION;
+    sscanf(argv[1], "%d", &ROCKS_PER_SIMULATION);
+
+    int M;
+    sscanf(argv[2], "%d", &M);
+
+    int N;
+    sscanf(argv[3], "%d", &N);
+
+    string name = "results_" + to_string(M) + "_" + to_string(N) + ".csv";
+    
+    freopen(name.c_str(), "w", stdout);
 
     int iterations = (1 / DELTA_P);
     double results[ iterations * PAD];
