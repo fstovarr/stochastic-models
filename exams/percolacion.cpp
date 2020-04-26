@@ -9,7 +9,7 @@
 
 using namespace std;
 
-#define DELTA_P 0.01
+#define DELTA_P 0.001
 #define PAD 8
 
 void clear(queue<pair<int, int>> &q) {
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
     freopen(name.c_str(), "w", stdout);
 
     int iterations = (1 / DELTA_P);
-    double results[ iterations * PAD];
+    double results[iterations * PAD];
 
     int possible_moves[][2] = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
 
@@ -119,7 +119,6 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < THREADS; i++) {
         rock[i] = new bool *[M];
-        
         for (int k = 0; k < M; k++)
             for (int j = 0; j < N; j++)
                 rock[i][k] = new bool[N];
