@@ -1,5 +1,5 @@
 // g++ percolacion.cpp -o percolacion -fopenmp -pthread
-
+#include <omp.h>
 #include <iostream>
 #include <cstdlib>
 #include <random>
@@ -69,8 +69,7 @@ bool find_path(int m, int n, bool **rock, int possible_moves[][2]) {
     return false;
 }
 
-bool** simulate_rock(int m, int n, double threshold, int seed) {
-    bool **rock = new bool *[m];
+void simulate_rock(int m, int n, double threshold, int seed, bool **rock) {
     double u = 0.0;
 
     mt19937 gen(seed);
@@ -78,7 +77,6 @@ bool** simulate_rock(int m, int n, double threshold, int seed) {
 
     // simulate rock
     for (int i = 0; i < m; i++) {
-        rock[i] = new bool[n];
         for (int j = 0; j < n; j++) {
             u = dis(gen);
             rock[i][j] = (u > threshold);
@@ -86,12 +84,10 @@ bool** simulate_rock(int m, int n, double threshold, int seed) {
         }
         // cout << endl;
     }
-
-    return rock;
 }
 
 int main(int argc, char *argv[]) {
-    if(argc < 3) {
+    if(argc < 5) {
         printf("Wrong arguments!\n");
         return -1;
     }
@@ -105,6 +101,9 @@ int main(int argc, char *argv[]) {
     int N;
     sscanf(argv[3], "%d", &N);
 
+    int THREADS;
+    sscanf(argv[4], "%d", &THREADS);
+
     string name = "results_" + to_string(M) + "_" + to_string(N) + ".csv";
     
     freopen(name.c_str(), "w", stdout);
@@ -116,14 +115,26 @@ int main(int argc, char *argv[]) {
 
     printf("p, theta_p\n");
 
-    #pragma omp parallel for schedule (guided)
+    bool **rock[THREADS];
+
+    for (int i = 0; i < THREADS; i++) {
+        rock[i] = new bool *[M];
+        
+        for (int k = 0; k < M; k++)
+            for (int j = 0; j < N; j++)
+                rock[i][k] = new bool[N];
+    }
+
+    #pragma omp parallel for schedule (guided) num_threads(THREADS)
     for (int p = 0; p < iterations; p++) {
         double total = 0;
-        bool **rock;
+        int id = omp_get_thread_num();
+
         for (int i = 0; i < ROCKS_PER_SIMULATION; i++) {
-            rock = simulate_rock(M, N, p * 1.0 * DELTA_P, i);
-            total += find_path(M, N, rock, possible_moves);
+            simulate_rock(M, N, p * 1.0 * DELTA_P, i, rock[id]);
+            total += find_path(M, N, rock[id], possible_moves);
         }
+
         results[p * PAD] = total;
     }
 

@@ -3,12 +3,12 @@
 g++ percolacion.cpp -o percolacion -fopenmp -pthread
 
 echo "Running (2, 100)"
-./percolacion 100 5 5
-# echo "Running (100, 2)"
-# ./percolacion 10000 100 2
-# echo "Running (30, 70)"
-# ./percolacion 10000 30 70
-# echo "Running (70, 30)"
-# ./percolacion 10000 70 30
-# echo "Running (200, 200)"
-# ./percolacion 10000 200 200
+./percolacion 10000 5 5 16
+echo "Running (100, 2)"
+./percolacion 10000 100 2 16
+echo "Running (30, 70)"
+./percolacion 10000 30 70 16
+echo "Running (70, 30)"
+./percolacion 10000 70 30 16
+echo "Running (200, 200)"
+./percolacion 10000 200 200 16
