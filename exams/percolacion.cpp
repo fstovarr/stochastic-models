@@ -1,4 +1,13 @@
-// g++ percolacion.cpp -o percolacion -fopenmp -pthread
+/**
+ * Simulación del problema de percolación
+ * Autor: Fabio Steven Tovar Ramos
+ * Compilación g++: g++ percolacion.cpp -o percolacion -fopenmp -pthread
+ * 
+ * Ejecución:
+ * ./percolacion 10000 5 5 16
+ * 
+ * */
+
 #include <omp.h>
 #include <iostream>
 #include <cstdlib>
@@ -9,14 +18,22 @@
 
 using namespace std;
 
+// Paso en el cual se incrementa la probabilidad de que un espacio de la roca sea poroso o no
 #define DELTA_P 0.001
+
+// PAD para evitar false sharing en el paralelismo
 #define PAD 8
 
+// Función para limpiar la cola
 void clear(queue<pair<int, int>> &q) {
    queue<pair<int, int>> empty;
    swap(q, empty);
 }
 
+// Función que dado un vector de booleanos de dos dimensiones y los posibles movimientos que se puedan realizar,
+// indica si hay un camino que une la parte superior con la inferior.
+// En el vector, true indica que es un espacio lleno, y false que hay una porosidad
+// m y n son las dimensiones del vector
 bool find_path(int m, int n, bool **rock, int possible_moves[][2]) {
     int void_top = n, void_bottom = n;
 
@@ -38,8 +55,10 @@ bool find_path(int m, int n, bool **rock, int possible_moves[][2]) {
     pair<int, int> current;
     int c_x = 0, c_y = 0, goal = top ? (m - 1) : 0, start = top ? 0 : (m - 1);
 
+    // BFS
     for (int i = 0, c = 0; i < m && c < count; i++) {
         if(rock[start][i] == true) continue;
+        
         to_visit.push(make_pair(start, i));
         visited[c][start][i] = true;
 
@@ -64,11 +83,11 @@ bool find_path(int m, int n, bool **rock, int possible_moves[][2]) {
         clear(to_visit);
     }
 
-    // free(visited);
-
     return false;
 }
 
+// Funcion que simula la creación de una roca dado un threshold, que es en este caso
+// la probabilidad por la cual se itera, y la retorna en la variable rock.
 void simulate_rock(int m, int n, double threshold, int seed, bool **rock) {
     double u = 0.0;
 
@@ -109,14 +128,19 @@ int main(int argc, char *argv[]) {
     freopen(name.c_str(), "w", stdout);
 
     int iterations = (1 / DELTA_P);
+
+    // Vector de resultados con un PAD para evitar false sharing
     double results[iterations * PAD];
 
+    // Posiciones a las cuales se puede llegar dada una coordenada
     int possible_moves[][2] = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
 
     printf("p, theta_p\n");
 
     bool **rock[THREADS];
 
+    // Vectores que contendrán cada una de las rocas simuladas,
+    // uno globalmente por cada hilo para evitar memory leaks
     for (int i = 0; i < THREADS; i++) {
         rock[i] = new bool *[M];
         for (int k = 0; k < M; k++)
@@ -129,6 +153,7 @@ int main(int argc, char *argv[]) {
         double total = 0;
         int id = omp_get_thread_num();
 
+        // Simulación de ROCKS_PER_SIMULATION rocas para un valor de p específico
         for (int i = 0; i < ROCKS_PER_SIMULATION; i++) {
             simulate_rock(M, N, p * 1.0 * DELTA_P, i, rock[id]);
             total += find_path(M, N, rock[id], possible_moves);
@@ -137,6 +162,7 @@ int main(int argc, char *argv[]) {
         results[p * PAD] = total;
     }
 
+    // Volcado de resultados al csv
     for (int i = 0; i < iterations; i++)
         printf("%f, %f\n", DELTA_P * i, results[i * PAD] / ROCKS_PER_SIMULATION);
 }
