@@ -4,7 +4,12 @@
  * Compilación g++: g++ percolacion.cpp -o percolacion -fopenmp -pthread
  * 
  * Ejecución:
+ * ./percolacion num_rocas M N hilos (delta_p)
+ * 
+ * Ejemplo:
  * ./percolacion 10000 5 5 16
+ * 
+ * ./percolacion 10000 5 5 16 0.1
  * 
  * */
 
@@ -17,9 +22,6 @@
 #include <utility>
 
 using namespace std;
-
-// Paso en el cual se incrementa la probabilidad de que un espacio de la roca sea poroso o no
-#define DELTA_P 0.001
 
 // PAD para evitar false sharing en el paralelismo
 #define PAD 8
@@ -123,8 +125,11 @@ int main(int argc, char *argv[]) {
     int THREADS;
     sscanf(argv[4], "%d", &THREADS);
 
+    double DELTA_P = 0.001;
+    if(argv[5] != NULL) sscanf(argv[5], "%lf", &DELTA_P);
+
     string name = "results_" + to_string(M) + "_" + to_string(N) + ".csv";
-    
+
     freopen(name.c_str(), "w", stdout);
 
     int iterations = (1 / DELTA_P);
