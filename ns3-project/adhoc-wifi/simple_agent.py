@@ -7,7 +7,7 @@ from functools import reduce
 import numpy as np
 from math import sqrt
 import tensorflow as tf
-import tensorflow.contrib.slim as slim
+import tf_slim as slim
 
 __author__ = "Fabio Steven Tovar Ramos"
 __version__ = "0.1.0"
@@ -27,8 +27,8 @@ startSim = bool(args.start)
 iterationNum = int(args.iterations)
 
 port = 5555
-simTime = 50            # seconds
-stepTime = 1          # seconds
+simTime = 1            # seconds
+stepTime = 0.1          # seconds
 seed = 1
 simArgs = { "--simTime": simTime,
             "--nNodes": 5 }
@@ -43,14 +43,14 @@ ob_space = env.observation_space
 ac_space = env.action_space
 print("Observation space: ", ob_space, ob_space.shape, ob_space.dtype)
 print("Action space: ", ac_space, ac_space.shape, ac_space.dtype)
+a_size = ac_space.n
 
-# a_size = ac_space.n
-# model = tf.keras.Sequential()
-# model.add(tf.keras.layers.Dense(s_size, input_shape=(s_size,), activation='relu'))
-# model.add(tf.keras.layers.Dense(a_size, activation='softmax'))
-# model.compile(optimizer=tf.train.AdamOptimizer(0.001),
-#               loss='categorical_crossentropy',
-#               metrics=['accuracy'])
+model = tf.keras.Sequential()
+model.add(tf.keras.layers.Dense(2, input_shape=(2,), activation='relu'))
+model.add(tf.keras.layers.Dense(1, activation='softmax'))
+model.compile(optimizer=tf.keras.optimizers.Adam(0.001),
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
 
 total_episodes = 200
 max_env_steps = 100
@@ -67,11 +67,11 @@ stepIdx = 0
 currIt = 0
 
 def calc_action(reward, action, top, bottom):
-    if top >= bottom:
+    if top > bottom:
         if reward == 1:
             top = action
         else:
-            bottom = action
+            bottom = action + 1
     return (bottom + (top - bottom) // 2, top, bottom)
 
 def calc_distance(v1, v2):
@@ -89,38 +89,53 @@ def calc_radius(positions_list):
         max_radius = max(max_radius, calc_distance(centroid, pos))
     return max_radius
 
-# try:
-#     while True:
-#         print("Start iteration: ", currIt)
-#         obs = env.reset()
-#         print("Step: ", stepIdx)
-#         # print("---obs:", obs)
+try:
+    while True:
+        print("Start iteration: ", currIt)
+        obs = env.reset()
+        print("Step: ", stepIdx)
+        # print("---obs:", obs)
 
-#         bottom = 0
-#         top = env.action_space.n
-#         action = env.action_space.sample()
+        bottom = 1
+        top = env.action_space.n
+        # action = env.action_space.sample()
+        action = 45
 
-#         while True:
-#             stepIdx += 1
+        while True:
+            stepIdx += 1
 
-#             obs, reward, done, info = env.step(action)
-#             radius = calc_radius(obs[2])
+            if stepIdx == 3:
+                action = 1
 
-#             action, top, bottom = calculate_action(reward, action, top, bottom)
-#             print("--- action {} top {} bottom {} ".format(action, top, bottom))
+            if stepIdx == 5:
+                action = 40
+
+            if stepIdx == 8:
+                action = 1
+
+            # if stepIdx == 7:
+            #     action = 15
+            
+            print("--- action {}".format(action))
+            obs, reward, done, info = env.step(action)
+            print("--- rtt {}".format(obs[0]))
+
+            radius = calc_radius(obs[2])
+            print("--- radius {} reward {}".format(radius, reward))
+            # action, top, bottom = calc_action(reward, action, top, bottom)
+            print("--- top {} bottom {} ".format(top, bottom))
         
-#             if done:
-#                 stepIdx = 0
-#                 if currIt + 1 < iterationNum:
-#                     env.reset()
-#                 break
+            if done:
+                stepIdx = 0
+                if currIt + 1 < iterationNum:
+                    env.reset()
+                break
 
-#         currIt += 1
-#         if currIt == iterationNum:
-#             break
-
-# except KeyboardInterrupt:
-#     print("Ctrl-C -> Exit")
-# finally:
-#     env.close()
-#     print("Done")
+        currIt += 1
+        if currIt == iterationNum:
+            break
+except KeyboardInterrupt:
+    print("Ctrl-C -> Exit")
+finally:
+    env.close()
+    print("Done")
