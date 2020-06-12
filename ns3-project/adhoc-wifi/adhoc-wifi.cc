@@ -22,6 +22,8 @@ NS_LOG_COMPONENT_DEFINE ("MANET network");
 float rcvPackages = 0.0, lastRecvPackages = 0.0;
 double accRtt = 0.0, lastAccRtt = 0.0;
 
+double txPowerLevels = 50;
+
 Ptr<OpenGymSpace> GetObservationSpace() 
 {
   Ptr<OpenGymTupleSpace> space = CreateObject<OpenGymTupleSpace> ();
@@ -31,7 +33,7 @@ Ptr<OpenGymSpace> GetObservationSpace()
 
 Ptr<OpenGymSpace> GetActionSpace() 
 {
-  Ptr<OpenGymDiscreteSpace> space = CreateObject<OpenGymDiscreteSpace> (400);
+  Ptr<OpenGymDiscreteSpace> space = CreateObject<OpenGymDiscreteSpace> (txPowerLevels);
   NS_LOG_UNCOND("Action space: " << space);
   return space;
 }
@@ -74,7 +76,7 @@ Ptr<OpenGymDataContainer> GetObservation()
 
 float GetReward() 
 {
-  return rcvPackages - lastRecvPackages;
+  return ((rcvPackages - lastRecvPackages) >= 1) ? 1 : 0;
 }
 
 bool GetGameOver() 
@@ -94,7 +96,7 @@ bool ExecuteActions(Ptr<OpenGymDataContainer> action)
 
   NS_LOG_UNCOND ("Action: " << gain);
 
-  Config::Set("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/RemoteStationManager/$ns3::ConstantRateWifiManager/DefaultTxPowerLevel", UintegerValue( gain ));
+  Config::Set("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/RemoteStationManager/$ns3::ConstantRateWifiManager/DefaultTxPowerLevel", UintegerValue (gain));
 
   
   // for(NodeList::Iterator i = NodeList::Begin (); i != NodeList::End (); ++i) {
@@ -134,7 +136,7 @@ void ResumeNodeMobility(double envStepTime);
 void PauseNodeMobility(double envStepTime) 
 {
   Config::Set("/NodeList/*/$ns3::MobilityModel/$ns3::RandomWalk2dMobilityModel/Speed", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
-  Simulator::Schedule (Seconds(1), &ResumeNodeMobility, envStepTime);
+  Simulator::Schedule (Seconds(10), &ResumeNodeMobility, envStepTime);
 }
 
 void ResumeNodeMobility(double envStepTime) 
@@ -147,25 +149,33 @@ int main(int argc, char *argv[])
 {
   uint32_t nNodes = 25;                     // 
   uint32_t httpServerNode = 1;              // 
-  uint32_t simulationTime = 1;              // Seconds
   uint32_t seed = 1;                        // Simulation seed
   uint32_t referenceLoss = 46.6777;         // Simulation seed
-  // double rxGain = 0;                        // 
   uint32_t openGymPort = 5555;              // 
-  double envStepTime = 0.1;                 // seconds, ns3gym env step time interval
+  uint32_t simulationTime = 10;              // Seconds
+  double envStepTime = 1;                 // seconds, ns3gym env step time interval
+  double txPowerStart = 0.0;
+  double txPowerEnd = 50.0;
 
   CommandLine cmd;
   cmd.AddValue ("nNodes", "Number of nodes in the network", nNodes);
   cmd.AddValue ("sNode", "Node with the HTTP server", httpServerNode);
   cmd.AddValue ("simTime", "Simulation time in seconds", simulationTime);
-  // cmd.AddValue ("phyGain", "RX Gain in physical layer", rxGain);
   cmd.AddValue ("refLoss", "Reference loss at reference distance (dB)", referenceLoss);
   cmd.AddValue ("openGymPort", "Port number for OpenGym env. Default: 5555", openGymPort);
   cmd.AddValue ("stepTime", "Step time fot OpenGym env. Default: 1", envStepTime);
+  cmd.AddValue ("txStart", "Start of power transmission. Default: 0", txPowerStart);
+  cmd.AddValue ("txEnd", "End of power transmission. Default: 50", txPowerEnd);
+  cmd.AddValue ("txLevels", "Power levels. Default: 51", txPowerLevels);
+
   cmd.Parse (argc, argv);
 
-  NS_LOG_UNCOND("Nodes: %u " << nNodes);
+  NS_LOG_UNCOND("Nodes: " << nNodes);
   NS_LOG_UNCOND("Simulation time: " << simulationTime);
+  NS_LOG_UNCOND("Tx power: (" << txPowerStart << ", " << txPowerEnd << ")");
+  // NS_LOG_UNCOND("Simulation time: " << simulationTime);
+  // NS_LOG_UNCOND("Nodes: %u " << nNodes);
+  // NS_LOG_UNCOND("Simulation time: " << simulationTime);
 
   RngSeedManager::SetSeed (3);
   RngSeedManager::SetRun (seed);
@@ -202,20 +212,21 @@ int main(int argc, char *argv[])
   );
 
   YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
-  // phy.Set ("RxGain", DoubleValue (rxGain) );
   phy.SetChannel (channel.Create ());
   phy.EnablePcapAll (std::string ("aodv"));
 
-  phy.Set ("TxPowerStart", DoubleValue (0));
-  phy.Set ("TxPowerEnd", DoubleValue (50));
-  phy.Set ("TxPowerLevels", UintegerValue (51));
+  phy.Set ("TxPowerStart", DoubleValue (txPowerStart));
+  phy.Set ("TxPowerEnd", DoubleValue (txPowerEnd));
+  phy.Set ("TxPowerLevels", UintegerValue (txPowerLevels));
 
   WifiMacHelper mac;
   mac.SetType("ns3::AdhocWifiMac");
 
   WifiHelper wifi;
-  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DefaultTxPowerLevel", UintegerValue (1));
-  // wifi.SetStandard (WIFI_PHY_STANDARD_80211g);
+  wifi.SetRemoteStationManager (
+    "ns3::ConstantRateWifiManager", 
+    "DefaultTxPowerLevel", UintegerValue (1)
+  );
   
   NetDeviceContainer devices;
   devices = wifi.Install(phy, mac, nodes);
@@ -230,8 +241,6 @@ int main(int argc, char *argv[])
   ipv4.SetBase ("10.1.1.0", "255.255.255.0");
   Ipv4InterfaceContainer interfaces = ipv4.Assign (devices);
 
-  // Config::SetDefault ("ns3::Ipv4RawSocketImpl::Protocol", StringValue ("2"));
-
   // Ping from first to last node
   V4PingHelper ping (interfaces.GetAddress (nNodes - 1));
   ping.SetAttribute ("Interval", TimeValue (MilliSeconds (envStepTime * 1000)));
@@ -243,7 +252,6 @@ int main(int argc, char *argv[])
   p.Stop (Seconds (simulationTime));
 
   Config::Connect ("/NodeList/" + std::to_string(0) + "/ApplicationList/*/$ns3::V4Ping/Rtt", MakeCallback (&PingRtt));
-  // Config::Connect ("/NodeList/" + std::to_string(0) + "/DeviceList/*/$ns3::WifiNetDevice/Phy/$ns3::YansWifiPhy/PhyTxBegin", MakeCallback (&Rcv));
 
   // OnOff traffic
   // OnOffHelper onOffHelper ("ns3::TcpSocketFactory", interfaces.GetAddress (nNodes - 1));

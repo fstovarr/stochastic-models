@@ -27,8 +27,8 @@ startSim = bool(args.start)
 iterationNum = int(args.iterations)
 
 port = 5555
-simTime = 1            # seconds
-stepTime = 0.1          # seconds
+simTime = 10            # seconds
+stepTime = 1          # seconds
 seed = 1
 simArgs = { "--simTime": simTime,
             "--nNodes": 5 }
@@ -94,27 +94,13 @@ try:
         print("Start iteration: ", currIt)
         obs = env.reset()
         print("Step: ", stepIdx)
-        # print("---obs:", obs)
 
         bottom = 1
         top = env.action_space.n
-        # action = env.action_space.sample()
-        action = 45
+        action = env.action_space.sample()
 
         while True:
             stepIdx += 1
-
-            if stepIdx == 3:
-                action = 1
-
-            if stepIdx == 5:
-                action = 40
-
-            if stepIdx == 8:
-                action = 1
-
-            # if stepIdx == 7:
-            #     action = 15
             
             print("--- action {}".format(action))
             obs, reward, done, info = env.step(action)
@@ -122,7 +108,7 @@ try:
 
             radius = calc_radius(obs[2])
             print("--- radius {} reward {}".format(radius, reward))
-            # action, top, bottom = calc_action(reward, action, top, bottom)
+            action, top, bottom = calc_action(reward, action, top, bottom)
             print("--- top {} bottom {} ".format(top, bottom))
         
             if done:
