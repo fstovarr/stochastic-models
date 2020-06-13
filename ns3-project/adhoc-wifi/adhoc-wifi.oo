@@ -18,7 +18,7 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("network");
+NS_LOG_COMPONENT_DEFINE ("MANET network");
 
 float rcvPackages = 0.0, lastRecvPackages = 0.0;
 double accRtt = 0.0, lastAccRtt = 0.0;
@@ -103,6 +103,12 @@ bool ExecuteActions(Ptr<OpenGymDataContainer> action)
   return true;
 }
 
+static void PingRtt (std::string context, Time rtt) 
+{
+  accRtt += rtt.GetNanoSeconds ();
+  rcvPackages++;
+}
+
 void ScheduleNextStateRead(double envStepTime, Ptr<OpenGymInterface> openGymInterface)
 {
   Simulator::Schedule (Seconds(envStepTime), &ScheduleNextStateRead, envStepTime, openGymInterface);
@@ -112,11 +118,6 @@ void ScheduleNextStateRead(double envStepTime, Ptr<OpenGymInterface> openGymInte
   accRtt = 0.0;
 }
 
-static void PingRtt (std::string context, Time rtt) 
-{
-  accRtt += rtt.GetNanoSeconds ();
-  rcvPackages++;
-}
 
 void ResumeNodeMobility(double envStepTime);
 
@@ -134,28 +135,34 @@ void ResumeNodeMobility(double envStepTime)
 
 int main(int argc, char *argv[]) 
 {
-  uint32_t nNodes = 25;             
+  uint32_t nNodes = 25;                     // 
+  uint32_t httpServerNode = 1;              // 
+  // uint32_t seed = 1;                        // Simulation seed
+  uint32_t referenceLoss = 46.6777;         // Simulation seed
   
   double txPowerStart = 0.0;
   double txPowerEnd = 50.0;
   
   uint32_t simSeed = 1;
-  double simulationTime = 1;        
-  double envStepTime = 0.1;         
+  double simulationTime = 1; //seconds
+  double envStepTime = 0.1; //seconds, ns3gym env step time interval
   uint32_t openGymPort = 5555;
+  uint32_t testArg = 0;
 
   CommandLine cmd;
   cmd.AddValue ("nNodes", "Number of nodes in the network", nNodes);
-  
+  cmd.AddValue ("sNode", "Node with the HTTP server", httpServerNode);
+  cmd.AddValue ("refLoss", "Reference loss at reference distance (dB)", referenceLoss);
   cmd.AddValue ("stepTime", "Step time fot OpenGym env. Default: 1", envStepTime);
   cmd.AddValue ("txStart", "Start of power transmission. Default: 0", txPowerStart);
   cmd.AddValue ("txEnd", "End of power transmission. Default: 50", txPowerEnd);
   cmd.AddValue ("txLevels", "Power levels. Default: 51", txPowerLevels);
 
-  // NS3 environment variables
   cmd.AddValue ("openGymPort", "Port number for OpenGym env. Default: 5555", openGymPort);
   cmd.AddValue ("simSeed", "Seed for random generator. Default: 1", simSeed);
+  
   cmd.AddValue ("simTime", "Simulation time in seconds. Default: 10s", simulationTime);
+  cmd.AddValue ("testArg", "Extra simulation argument. Default: 0", testArg);
 
   cmd.Parse (argc, argv);
 
@@ -168,82 +175,84 @@ int main(int argc, char *argv[])
   NS_LOG_UNCOND("--openGymPort: " << openGymPort);
   NS_LOG_UNCOND("--envStepTime: " << envStepTime);
   NS_LOG_UNCOND("--seed: " << simSeed);
+  NS_LOG_UNCOND("--testArg: " << testArg);
 
   RngSeedManager::SetSeed (1);
   RngSeedManager::SetRun (simSeed);
 
-  NodeContainer nodes;
-  nodes.Create (nNodes);
+  // NodeContainer nodes;
+  // nodes.Create (nNodes);
 
-  // Position and mobility
-  MobilityHelper mobility;
-  mobility.SetPositionAllocator (
-    "ns3::RandomDiscPositionAllocator",
-    "X", StringValue ("2.5"),
-    "Y", StringValue ("2.5"),
-    "Theta", StringValue ("ns3::UniformRandomVariable[Min=0|Max=6.2830]"), // Ángulo
-    "Rho", StringValue ("ns3::UniformRandomVariable[Min=0|Max=1]") // Radio
-  );
+  // // Position and mobility
+  // MobilityHelper mobility;
+  // mobility.SetPositionAllocator (
+  //   "ns3::RandomDiscPositionAllocator",
+  //   "X", StringValue ("2.5"),
+  //   "Y", StringValue ("2.5"),
+  //   "Theta", StringValue ("ns3::UniformRandomVariable[Min=0|Max=6.2830]"), // Ángulo
+  //   "Rho", StringValue ("ns3::UniformRandomVariable[Min=0|Max=1]") // Radio
+  // );
 
-  mobility.SetMobilityModel (
-    "ns3::RandomWalk2dMobilityModel",
-    "Mode", StringValue ("Time"),
-    "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=0]"),
-    "Bounds", StringValue ("0|5|0|5"),
-    "Time", TimeValue (MilliSeconds(envStepTime * 1000))
-  );
+  // mobility.SetMobilityModel (
+  //   "ns3::RandomWalk2dMobilityModel",
+  //   "Mode", StringValue ("Time"),
+  //   "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=0]"),
+  //   "Bounds", StringValue ("0|5|0|5"),
+  //   "Time", TimeValue (MilliSeconds(envStepTime * 1000))
+  // );
 
-  mobility.Install(nodes);
+  // mobility.Install(nodes);
 
-  // WiFi config
-  YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
-  channel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
-  channel.AddPropagationLoss (
-    "ns3::LogDistancePropagationLossModel", 
-    "Exponent", DoubleValue (1)
-  );
+  // // WiFi config
+  // YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
+  // channel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+  // channel.AddPropagationLoss (
+  //   "ns3::LogDistancePropagationLossModel", 
+  //   "ReferenceLoss", DoubleValue (referenceLoss),
+  //   "Exponent", DoubleValue (1)
+  // );
 
-  YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
-  phy.SetChannel (channel.Create ());
-  phy.EnablePcapAll (std::string ("aodv"));
+  // YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
+  // phy.SetChannel (channel.Create ());
+  // phy.EnablePcapAll (std::string ("aodv"));
 
-  phy.Set ("TxPowerStart", DoubleValue (txPowerStart));
-  phy.Set ("TxPowerEnd", DoubleValue (txPowerEnd));
-  phy.Set ("TxPowerLevels", UintegerValue (txPowerLevels));
+  // phy.Set ("TxPowerStart", DoubleValue (txPowerStart));
+  // phy.Set ("TxPowerEnd", DoubleValue (txPowerEnd));
+  // phy.Set ("TxPowerLevels", UintegerValue (txPowerLevels));
 
-  WifiMacHelper mac;
-  mac.SetType("ns3::AdhocWifiMac");
+  // WifiMacHelper mac;
+  // mac.SetType("ns3::AdhocWifiMac");
 
-  WifiHelper wifi;
-  wifi.SetRemoteStationManager (
-    "ns3::ConstantRateWifiManager", 
-    "DefaultTxPowerLevel", UintegerValue (1)
-  );
+  // WifiHelper wifi;
+  // wifi.SetRemoteStationManager (
+  //   "ns3::ConstantRateWifiManager", 
+  //   "DefaultTxPowerLevel", UintegerValue (1)
+  // );
   
-  NetDeviceContainer devices;
-  devices = wifi.Install(phy, mac, nodes);
+  // NetDeviceContainer devices;
+  // devices = wifi.Install(phy, mac, nodes);
 
-  AodvHelper aodv;
-  InternetStackHelper internet;
-  internet.SetRoutingHelper (aodv);
-  internet.Install (nodes);
+  // AodvHelper aodv;
+  // InternetStackHelper internet;
+  // internet.SetRoutingHelper (aodv);
+  // internet.Install (nodes);
 
-  Ipv4AddressHelper ipv4;
-  NS_LOG_INFO ("Assign IP Addresses.");
-  ipv4.SetBase ("10.1.1.0", "255.255.255.0");
-  Ipv4InterfaceContainer interfaces = ipv4.Assign (devices);
+  // Ipv4AddressHelper ipv4;
+  // NS_LOG_INFO ("Assign IP Addresses.");
+  // ipv4.SetBase ("10.1.1.0", "255.255.255.0");
+  // Ipv4InterfaceContainer interfaces = ipv4.Assign (devices);
 
-  // Ping from first to last node
-  V4PingHelper ping (interfaces.GetAddress (nNodes - 1));
-  ping.SetAttribute ("Interval", TimeValue (MilliSeconds (envStepTime * 1000)));
-  ping.SetAttribute ("Verbose", BooleanValue (true));
-  ping.SetAttribute ("Size", UintegerValue (1024));
+  // // Ping from first to last node
+  // V4PingHelper ping (interfaces.GetAddress (nNodes - 1));
+  // ping.SetAttribute ("Interval", TimeValue (MilliSeconds (envStepTime * 1000)));
+  // ping.SetAttribute ("Verbose", BooleanValue (true));
+  // ping.SetAttribute ("Size", UintegerValue (1024));
 
-  ApplicationContainer p = ping.Install (nodes.Get (0));
-  p.Start (Seconds (0));
-  p.Stop (Seconds (simulationTime));
+  // ApplicationContainer p = ping.Install (nodes.Get (0));
+  // p.Start (Seconds (0));
+  // p.Stop (Seconds (simulationTime));
 
-  Config::Connect ("/NodeList/" + std::to_string(0) + "/ApplicationList/*/$ns3::V4Ping/Rtt", MakeCallback (&PingRtt));
+  // Config::Connect ("/NodeList/" + std::to_string(0) + "/ApplicationList/*/$ns3::V4Ping/Rtt", MakeCallback (&PingRtt));
 
   // OnOff traffic
   // OnOffHelper onOffHelper ("ns3::TcpSocketFactory", interfaces.GetAddress (nNodes - 1));
@@ -281,8 +290,8 @@ int main(int argc, char *argv[])
   openGymInterface->SetGetExtraInfoCb( MakeCallback (&GetExtraInfo) );
   openGymInterface->SetExecuteActionsCb( MakeCallback (&ExecuteActions) );
 
-  Simulator::Schedule (Seconds(0.0), &ScheduleNextStateRead, envStepTime, openGymInterface);
   Simulator::Schedule (Seconds(0.0), &PauseNodeMobility, envStepTime);
+  Simulator::Schedule (Seconds(0.0), &ScheduleNextStateRead, envStepTime, openGymInterface);
 
   Simulator::Stop (Seconds (simulationTime));
   Simulator::Run ();
