@@ -1,3 +1,6 @@
+import sys
+sys.path.append("..")
+
 from nodes_helper import NodesHelper
 
 class BinarySimulator:
@@ -9,6 +12,7 @@ class BinarySimulator:
         self.totalPower = 0
         self.receivedPackages = 0
         self.time = 0
+        self.steps = 0
     
     def reset(self, seed=1):
         self.env.set_seed(seed)
@@ -17,9 +21,10 @@ class BinarySimulator:
         self.time = 0
         self.totalPower = 0
         self.receivedPackages = 0
+        self.steps = 0
     
     def get_metrics(self):
-        return (self.receivedPackages, self.totalPower)
+        return (self.receivedPackages, self.receivedPackages / self.steps, self.totalPower)
 
     def start(self, initial_action, steps):
         X = []
@@ -32,6 +37,8 @@ class BinarySimulator:
         lastDistance = 0
 
         while steps > 0:
+            self.steps += 1
+            self.totalPower += action
             obs, reward, done, info = self.env.step(action)             # Execute action and move in time
             
             radio = self.helper.get_radio(obs[2])                            # Nodes distribution radio
@@ -47,8 +54,6 @@ class BinarySimulator:
 
                 steps -= 1
 
-                self.totalPower += action
-
                 # Reset agent bounds and environment for the next step
                 action = self.env.get_random_action()
                 self.agent.reset()
@@ -60,5 +65,5 @@ class BinarySimulator:
             lastReward = reward                                     # Update last reward
             lastDistance = distance                                 # Update last distance
         
-        self.receivedPackages = obs[0]
+        self.receivedPackages = obs[1][0]
         return (X, Y)

@@ -1,3 +1,6 @@
+import sys
+sys.path.append("..")
+
 from nodes_helper import NodesHelper
 
 class CognitiveSimulator:
@@ -9,13 +12,17 @@ class CognitiveSimulator:
         self.totalPower = 0
         self.receivedPackages = 0
         self.time = 0
+        self.steps = 0
     
     def reset(self, seed=1):
         self.env.reset()
-        self.agent.reset()
         self.time = 0
         self.totalPower = 0
         self.receivedPackages = 0
+        self.steps = 0
+
+    def get_metrics(self):
+        return (self.receivedPackages, self.receivedPackages / (self.steps), self.totalPower)
 
     def start(self, initial_action, steps):
         X = []
@@ -28,6 +35,8 @@ class CognitiveSimulator:
         lastDistance = 0
 
         while steps > 0:
+            self.totalPower += action
+            self.steps += 1
             obs, reward, done, info = self.env.step(action)             # Execute action and move in time
             
             radio = self.helper.get_radio(obs[2])                            # Nodes distribution radio
@@ -39,15 +48,15 @@ class CognitiveSimulator:
             # If the agents change their position, save the optimal action found
             if lastRadio != radio and lastRadio != -1:
                 X.append([self.time, lastRadio, lastReward, lastDistance])   # Save time, radio, reward, and distance between source and receiver
-                Y.append(action)                                      # Save the found action
-
+                Y.append(action)                                    # Save the found action
                 steps -= 1
                 self.time += 1                                      # Update steps counter
             
-            action = self.agent.get_action(radio, distance, self.time + 1)      # Calculate the next action according to the reward and action
+            action = self.agent.get_action(self.time + 1, distance, radio)      # Calculate the next action according to the reward and action
             
             lastRadio = radio                                       # Update last radio
             lastReward = reward                                     # Update last reward
             lastDistance = distance                                 # Update last distance
         
+        self.receivedPackages = obs[1][0]
         return (X, Y)

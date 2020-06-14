@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt                         # Matplotlib to plot sim
 from sklearn.model_selection import train_test_split    # SKLearn to divide the data between training and test
 from datetime import datetime                           # Datetime to get the current datetime
 
-from binary_agent import BinaryAgent                    # Agent 1
-from cognitive_agent import CognitiveAgent              # Agent 2
+from agents.binary_agent import BinaryAgent                    # Agent 1
+from agents.cognitive_agent import CognitiveAgent              # Agent 2
 from nodes_helper import NodesHelper                    # Helper to make calculations over nodes
-from binary_simulator import BinarySimulator            # Simulator for binary agent
-from cognitive_simulator import CognitiveSimulator      # Simulator for binary agent
+from simulators.binary_simulator import BinarySimulator            # Simulator for binary agent
+from simulators.cognitive_simulator import CognitiveSimulator      # Simulator for binary agent
 
 __author__ = "Fabio Steven Tovar Ramos"
 __version__ = "1.0"
@@ -68,6 +68,8 @@ training = bool(args.training)
 episodes = int(args.episodes)
 stepsByEpisode = int(args.stepsByEpisode)
 
+print(training)
+
 # NS3 Environment creation
 env = ns3env.Ns3Env(port=port, stepTime=stepTime, startSim=startSim, simSeed=seed, simArgs=simArgs, debug=debug)
 env.reset()
@@ -79,7 +81,7 @@ radio = -1
 
 # Agents instantiation
 agent1 = BinaryAgent(total_actions)
-agent2 = CognitiveAgent(2, total_actions)
+agent2 = CognitiveAgent(3, total_actions)
 helper = NodesHelper()
 
 binarySim = BinarySimulator(env, agent1, verbose=True)
@@ -110,12 +112,12 @@ try:
             df.to_csv("{}_{}_{}.csv".format(currentTime, episodes, stepsByEpisode), mode='a', header=False)
 
     if not training:
-        df = pd.read_csv("data2.csv", index_col=0, )            # Load data from file
+        df = pd.read_csv("14062020222635_10_30.csv", index_col=0, )            # Load data from file
     
     df = df[df['reward']==1].reset_index()          # Select valid data
     df.drop('index', axis=1, inplace=True)          # Delete index column
 
-    X = df[['radio', 'time']].to_numpy()            # Select training data for cognitive agent
+    X = df[['time', 'distance', 'radio']].to_numpy()            # Select training data for cognitive agent
     Y = df['power'].to_numpy()                      # Select goal
 
     # Divide data in training and test
@@ -127,27 +129,20 @@ try:
     # Model training
     history = agent2.learn(X_train, y_train, epochs=50, validation_data=(X_test, y_test))
 
-    # plt.plot(history.history['accuracy'])
-    # plt.savefig("learning.png")
-
-    # plot = df.plot()
-    # fig = plot.get_figure()
-    # fig.savefig("plot.png")
-
     # Choose a random initial action
     initial_action = env.get_random_action()
     
     # Reset environment to real execution with the COGNITIVE AGENT
     cognitiveSim.reset()
-    cognitiveSim.start(initial_action, 1)
-    totalPackages, totalPower = cognitiveSim.get_metrics()
-    print("COGNINIVE: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, totalPackages * (stepTime / simTime) * 1000, totalPower))
+    cognitiveSim.start(initial_action, 20)
+    totalPackages, ratePackages, totalPower = cognitiveSim.get_metrics()
+    print("COGNINIVE: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
 
     # Reset environment to real execution with the BINARY AGENT
     binarySim.reset()
-    binarySim.start(initial_action, 1)
-    totalPackages, totalPower = binarySim.get_metrics()
-    print("BINARY: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, totalPackages * (stepTime / simTime) * 1000, totalPower))
+    binarySim.start(initial_action, 20)
+    totalPackages, ratePackages, totalPower = binarySim.get_metrics()
+    print("BINARY: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
 except KeyboardInterrupt:
     print("Ctrl-C -> Exit")
 finally:
