@@ -1,117 +1,153 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import argparse
-from ns3gym import ns3env
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
+import argparse                                         # Load variables from command line
+from ns3gym import ns3env                               # NS3 environment library
+import pandas as pd                                     # Pandas to manage data
+import matplotlib.pyplot as plt                         # Matplotlib to plot simulation data and training performance
+from sklearn.model_selection import train_test_split    # SKLearn to divide the data between training and test
+from datetime import datetime                           # Datetime to get the current datetime
 
-from binary_agent import BinaryAgent
-from cognitive_agent import CognitiveAgent
-from nodes_helper import NodesHelper
+from binary_agent import BinaryAgent                    # Agent 1
+from cognitive_agent import CognitiveAgent              # Agent 2
+from nodes_helper import NodesHelper                    # Helper to make calculations over nodes
+from binary_simulator import BinarySimulator            # Simulator for binary agent
+from cognitive_simulator import CognitiveSimulator      # Simulator for binary agent
 
 __author__ = "Fabio Steven Tovar Ramos"
-__version__ = "0.1.0"
+__version__ = "1.0"
 __email__ = "fstovarr@unal.edu.co"
 
 parser = argparse.ArgumentParser(description='Start simulation script on/off')
 parser.add_argument('--start',
                     type=int,
                     default=1,
-                    help='Start ns-3 simulation script 0/1, Default: 1')
-parser.add_argument('--iterations',
+                    help='Start ns-3 simulation script automatically 0/1, Default: 1')
+parser.add_argument('--simTime',
                     type=int,
-                    default=1,
-                    help='Number of iterations, Default: 1')
-args = parser.parse_args()
-startSim = bool(args.start)
-iterationNum = int(args.iterations)
+                    default=4000,
+                    help='Simulation time (s), Default: 4000')
+parser.add_argument('--stepTime',
+                    type=int,
+                    default=5,
+                    help='Time of each step (s), Default: 5')
+parser.add_argument('--training',
+                    type=bool,
+                    default=False,
+                    help='Training mode, Default: false')
+parser.add_argument('--verbose',
+                    type=bool,
+                    default=False,
+                    help='Verbose mode, Default: false')
+parser.add_argument('--episodes',
+                    type=int,
+                    default=10,
+                    help='Training Episodes, Default: 10')
+parser.add_argument('--stepsByEpisode',
+                    type=int,
+                    default=30,
+                    help='Steps by episode in trainig, Default: 30')
 
+args = parser.parse_args()
+
+now = datetime.now()
+currentTime = now.strftime("%d%m%Y%H%M%S")
+
+# Simulation variables
+startSim = bool(args.start)
+simTime = int(args.simTime)
+stepTime = int(args.stepTime)
+verbose = bool(args.verbose)
 port = 5555
-simTime = 20
-stepTime = 5
-seed = 0
-simArgs = {"--simTime": simTime}
+seed = 1
+simArgs = { "--simTime": simTime, '--stepTime': stepTime }
 debug = False
 
-env = ns3env.Ns3Env(port=port, stepTime=stepTime, startSim=1, simSeed=seed, simArgs=simArgs, debug=debug)
+# Training variables
+training = bool(args.training)
+episodes = int(args.episodes)
+stepsByEpisode = int(args.stepsByEpisode)
+
+# NS3 Environment creation
+env = ns3env.Ns3Env(port=port, stepTime=stepTime, startSim=startSim, simSeed=seed, simArgs=simArgs, debug=debug)
 env.reset()
 
 total_actions = env.action_space.n
-
 action = 0
 last_radio = -1
 radio = -1
-episodes = 1
-stepsByEpisode = 3
-verbose = True
-training = True
 
+# Agents instantiation
 agent1 = BinaryAgent(total_actions)
 agent2 = CognitiveAgent(2, total_actions)
 helper = NodesHelper()
 
-X = []
-Y = []
+binarySim = BinarySimulator(env, agent1, verbose=True)
+cognitiveSim = CognitiveSimulator(env, agent2, verbose=True)
 
 try:
+    # Training
     if training:
         epTmp = episodes
         while epTmp != 0:
-            env.reset()
-            agent1.reset()
-            sbeTmp = stepsByEpisode
-            action = 0
-            last_radio = -1
-            while sbeTmp != 0:
-                obs, reward, done, info = env.step(action)
-                radio = helper.get_radio(obs[2])
-                
-                if verbose:
-                    print("Step: {}\tAction: {}\tReward: {}\tRadio: {}".format(stepsByEpisode - sbeTmp, action, reward, radio))
-                
-                if last_radio != radio and last_radio != -1:
-                    X.append([stepsByEpisode - sbeTmp, last_radio])
-                    Y.append(action)
-                    action = 0
-                    sbeTmp -= 1
-                    agent1.reset()
-                else:
-                    action = agent1.get_action(reward, action)
-                last_radio = radio
-            epTmp -= 1
+            X = []
+            Y = []
+            
+            seed += 1                                               # Change the simulation seed for each episode
+            initial_action = env.get_random_action()                # Choose a random initial action
+            binarySim.reset(seed)                                   # Reset simulation and set the new seed
+            X, Y = binarySim.start(initial_action, stepsByEpisode)  # Start simulation and get data
+
+            epTmp -= 1                                              # Update episodes counter
+            
+            if verbose:
+                print("------------- SAVE FILE --------------------")
+
+            # Save data in a csv file after each episode 
+            df_x = pd.DataFrame(X, columns=['time', 'radio', 'reward', 'distance'])
+            df_y = pd.DataFrame({'power': Y})
+            df = pd.concat([df_x, df_y], axis=1)
+            df.to_csv("{}_{}_{}.csv".format(currentTime, episodes, stepsByEpisode), mode='a', header=False)
 
     if not training:
-        df = pd.read_csv("data.csv", index_col=0)
-    else:
-        df_x = pd.DataFrame(X, columns=['time', 'radio'])
-        df_y = pd.DataFrame({'power': Y})
-        df = pd.concat([df_x, df_y], axis=1)
-        df.to_csv("data2.csv", mode='a', header=False)
+        df = pd.read_csv("data2.csv", index_col=0, )            # Load data from file
     
-    # X = df[['radio', 'time']].to_numpy()
-    # Y = df['power'].to_numpy()
+    df = df[df['reward']==1].reset_index()          # Select valid data
+    df.drop('index', axis=1, inplace=True)          # Delete index column
 
-    # X_train, X_test, y_train, y_test = train_test_split(X,
-    #                                                     Y,
-    #                                                     test_size=0.2,
-    #                                                     random_state=2)
+    X = df[['radio', 'time']].to_numpy()            # Select training data for cognitive agent
+    Y = df['power'].to_numpy()                      # Select goal
 
-    # print(X_train)
-    # # history = agent2.learn(X_train, y_train, epochs=400)
+    # Divide data in training and test
+    X_train, X_test, y_train, y_test = train_test_split(X,
+                                                        Y,
+                                                        test_size=0.2,
+                                                        random_state=2)
 
-    # # plt.plot(history.history['accuracy'])
+    # Model training
+    history = agent2.learn(X_train, y_train, epochs=50, validation_data=(X_test, y_test))
+
+    # plt.plot(history.history['accuracy'])
     # plt.savefig("learning.png")
 
     # plot = df.plot()
     # fig = plot.get_figure()
     # fig.savefig("plot.png")
 
-    # radio = helper.get_radio(obs[2])
-    # action = agent2.get_action(radio)
-    # print("------- radio {} / action {}".format(radio, action))
-    # obs, reward, done, info = env.step(action)
+    # Choose a random initial action
+    initial_action = env.get_random_action()
+    
+    # Reset environment to real execution with the COGNITIVE AGENT
+    cognitiveSim.reset()
+    cognitiveSim.start(initial_action, 1)
+    totalPackages, totalPower = cognitiveSim.get_metrics()
+    print("COGNINIVE: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, totalPackages * (stepTime / simTime) * 1000, totalPower))
+
+    # Reset environment to real execution with the BINARY AGENT
+    binarySim.reset()
+    binarySim.start(initial_action, 1)
+    totalPackages, totalPower = binarySim.get_metrics()
+    print("BINARY: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, totalPackages * (stepTime / simTime) * 1000, totalPower))
 except KeyboardInterrupt:
     print("Ctrl-C -> Exit")
 finally:

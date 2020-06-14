@@ -128,20 +128,21 @@ void PauseNodeMobility(double envStepTime)
 
 void ResumeNodeMobility(double envStepTime) 
 {
-  Config::Set("/NodeList/*/$ns3::MobilityModel/$ns3::RandomWalk2dMobilityModel/Speed", StringValue("ns3::UniformRandomVariable[Min=0|Max=0.1]"));
+  Config::Set("/NodeList/*/$ns3::MobilityModel/$ns3::RandomWalk2dMobilityModel/Speed", StringValue("ns3::UniformRandomVariable[Min=0|Max=0.15]"));
   Simulator::Schedule (MilliSeconds((envStepTime * 1000) / 2), &PauseNodeMobility, envStepTime);
 }
 
 int main(int argc, char *argv[]) 
 {
-  uint32_t nNodes = 25;             
-  
+  uint32_t nNodes = 25;            
+
+  uint32_t referenceLoss = 46.6777;
   double txPowerStart = 0.0;
   double txPowerEnd = 50.0;
   
   uint32_t simSeed = 1;
-  double simulationTime = 1;        
-  double envStepTime = 0.1;         
+  double simulationTime = 20;
+  double envStepTime = 5;         
   uint32_t openGymPort = 5555;
 
   CommandLine cmd;
@@ -182,7 +183,7 @@ int main(int argc, char *argv[])
     "X", StringValue ("2.5"),
     "Y", StringValue ("2.5"),
     "Theta", StringValue ("ns3::UniformRandomVariable[Min=0|Max=6.2830]"), // Ángulo
-    "Rho", StringValue ("ns3::UniformRandomVariable[Min=0|Max=1]") // Radio
+    "Rho", StringValue ("ns3::UniformRandomVariable[Min=0|Max=0.5]") // Radio
   );
 
   mobility.SetMobilityModel (
@@ -200,6 +201,7 @@ int main(int argc, char *argv[])
   channel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
   channel.AddPropagationLoss (
     "ns3::LogDistancePropagationLossModel", 
+    "ReferenceLoss", DoubleValue (referenceLoss),
     "Exponent", DoubleValue (1)
   );
 
@@ -281,8 +283,8 @@ int main(int argc, char *argv[])
   openGymInterface->SetGetExtraInfoCb( MakeCallback (&GetExtraInfo) );
   openGymInterface->SetExecuteActionsCb( MakeCallback (&ExecuteActions) );
 
-  Simulator::Schedule (Seconds(0.0), &ScheduleNextStateRead, envStepTime, openGymInterface);
   Simulator::Schedule (Seconds(0.0), &PauseNodeMobility, envStepTime);
+  Simulator::Schedule (Seconds(0.0), &ScheduleNextStateRead, envStepTime, openGymInterface);
 
   Simulator::Stop (Seconds (simulationTime));
   Simulator::Run ();
