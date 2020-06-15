@@ -24,10 +24,14 @@ class CognitiveAgent:
     def evaluate(X_test, Y_test):
         return self.model.evaluate(X_test, Y_test, verbose=2)
                 
-    def learn(self, X, Y, epochs=3, validation_data=None):
+    def learn(self, X, Y, epochs=3, validation_data=None, verbose=False):
         Y = to_categorical(Y, self.numClasses)
         y_test = to_categorical(validation_data[1], self.numClasses)
-        return self.model.fit(X, Y, epochs=epochs, validation_data=(validation_data[0], y_test), verbose=2)
+        if verbose:
+            k_ver = 2
+        else:
+            k_ver = 0
+        return self.model.fit(X, Y, epochs=epochs, validation_data=(validation_data[0], y_test), verbose=k_ver)
         
     def get_action(self, time, distance, radio):
         prediction = self.model.predict([[time, distance, radio]])

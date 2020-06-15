@@ -68,8 +68,6 @@ training = bool(args.training)
 episodes = int(args.episodes)
 stepsByEpisode = int(args.stepsByEpisode)
 
-print(training)
-
 # NS3 Environment creation
 env = ns3env.Ns3Env(port=port, stepTime=stepTime, startSim=startSim, simSeed=seed, simArgs=simArgs, debug=debug)
 env.reset()
@@ -84,8 +82,8 @@ agent1 = BinaryAgent(total_actions)
 agent2 = CognitiveAgent(3, total_actions)
 helper = NodesHelper()
 
-binarySim = BinarySimulator(env, agent1, verbose=True)
-cognitiveSim = CognitiveSimulator(env, agent2, verbose=True)
+binarySim = BinarySimulator(env, agent1, verbose=verbose)
+cognitiveSim = CognitiveSimulator(env, agent2, verbose=verbose)
 
 try:
     # Training
@@ -110,6 +108,7 @@ try:
             df_y = pd.DataFrame({'power': Y})
             df = pd.concat([df_x, df_y], axis=1)
             df.to_csv("{}_{}_{}.csv".format(currentTime, episodes, stepsByEpisode), mode='a', header=False)
+            df.to_csv("data.csv", mode='a', header=False)
 
     if not training:
         df = pd.read_csv("14062020222635_10_30.csv", index_col=0, )            # Load data from file
@@ -127,7 +126,9 @@ try:
                                                         random_state=2)
 
     # Model training
-    history = agent2.learn(X_train, y_train, epochs=50, validation_data=(X_test, y_test))
+    history = agent2.learn(X_train, y_train, epochs=50, validation_data=(X_test, y_test), verbose=verbose)
+
+    print("Learning finished\nStart of environment execution")
 
     # Choose a random initial action
     initial_action = env.get_random_action()
@@ -136,7 +137,7 @@ try:
     cognitiveSim.reset()
     cognitiveSim.start(initial_action, 20)
     totalPackages, ratePackages, totalPower = cognitiveSim.get_metrics()
-    print("COGNINIVE: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
+    print("COGNITIVE: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
 
     # Reset environment to real execution with the BINARY AGENT
     binarySim.reset()
