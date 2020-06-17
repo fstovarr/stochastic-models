@@ -1,6 +1,5 @@
 import sys
 sys.path.append("..")
-
 from nodes_helper import NodesHelper
 
 class CognitiveSimulator:

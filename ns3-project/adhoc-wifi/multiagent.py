@@ -5,7 +5,6 @@ import argparse                                         # Load variables from co
 from ns3gym import ns3env                               # NS3 environment library
 import pandas as pd                                     # Pandas to manage data
 import matplotlib.pyplot as plt                         # Matplotlib to plot simulation data and training performance
-from sklearn.model_selection import train_test_split    # SKLearn to divide the data between training and test
 from datetime import datetime                           # Datetime to get the current datetime
 
 from agents.binary_agent import BinaryAgent                    # Agent 1
@@ -110,38 +109,36 @@ try:
             df.to_csv("{}_{}_{}.csv".format(currentTime, episodes, stepsByEpisode), mode='a', header=False)
             df.to_csv("data.csv", mode='a', header=False)
 
-    if not training:
-        df = pd.read_csv("14062020222635_10_30.csv", index_col=0, )            # Load data from file
-    
-    df = df[df['reward']==1].reset_index()          # Select valid data
-    df.drop('index', axis=1, inplace=True)          # Delete index column
+    if training:    
+        df = df[df['reward']==1].reset_index()          # Select valid data
+        df.drop('index', axis=1, inplace=True)          # Delete index column
 
-    X = df[['time', 'distance', 'radio']].to_numpy()            # Select training data for cognitive agent
-    Y = df['power'].to_numpy()                      # Select goal
+        X = df[['time', 'distance', 'radio']].to_numpy()            # Select training data for cognitive agent
+        y = df['power'].to_numpy()                                  # Select goal
+        
+        # Model training
+        history = agent2.learn(X, y, epochs=50, validation_data=(X_test, y_test), verbose=verbose)
+        agent2.save_state()
 
-    # Divide data in training and test
-    X_train, X_test, y_train, y_test = train_test_split(X,
-                                                        Y,
-                                                        test_size=0.2,
-                                                        random_state=2)
+        print("Learning finished")
+    else:
+        df = pd.read_csv("data.csv", index_col=0)            # Load data from file
+        agent2.load_state()
 
-    # Model training
-    history = agent2.learn(X_train, y_train, epochs=50, validation_data=(X_test, y_test), verbose=verbose)
-
-    print("Learning finished\nStart of environment execution")
+    print("Start of environment execution")
 
     # Choose a random initial action
     initial_action = env.get_random_action()
     
     # Reset environment to real execution with the COGNITIVE AGENT
     cognitiveSim.reset()
-    cognitiveSim.start(initial_action, 20)
+    cognitiveSim.start(initial_action, simTime // stepTime)
     totalPackages, ratePackages, totalPower = cognitiveSim.get_metrics()
     print("COGNITIVE: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
 
     # Reset environment to real execution with the BINARY AGENT
     binarySim.reset()
-    binarySim.start(initial_action, 20)
+    binarySim.start(initial_action, simTime // stepTime)
     totalPackages, ratePackages, totalPower = binarySim.get_metrics()
     print("BINARY: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
 except KeyboardInterrupt:
