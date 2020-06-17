@@ -261,6 +261,17 @@ int main(int argc, char *argv[])
   p.Start (Seconds (0));
   p.Stop (Seconds (simulationTime));
 
+  // OnOff traffic
+  OnOffHelper onOffHelper ("ns3::TcpSocketFactory", interfaces.GetAddress (nNodes - 2));
+  onOffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=10]"));
+  onOffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=10]"));
+  onOffHelper.SetAttribute ("DataRate", StringValue ("2Mbps"));
+  onOffHelper.SetAttribute ("PacketSize", UintegerValue(1280));
+
+  ApplicationContainer oop = onOffHelper.Install (nodes.Get (2));
+  oop.Start (Seconds (0));
+  oop.Stop (Seconds (simulationTime));
+
   // Connect a callback with to get the ping results
   Config::Connect ("/NodeList/" + std::to_string(0) + "/ApplicationList/*/$ns3::V4Ping/Rtt", MakeCallback (&PingRtt));
 

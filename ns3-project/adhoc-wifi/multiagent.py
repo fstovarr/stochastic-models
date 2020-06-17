@@ -34,12 +34,17 @@ from agents.cognitive_agent import CognitiveAgent              # Agent 2
 from nodes_helper import NodesHelper                    # Helper to make calculations over nodes
 from simulators.binary_simulator import BinarySimulator            # Simulator for binary agent
 from simulators.cognitive_simulator import CognitiveSimulator      # Simulator for binary agent
+from math import ceil, log2
 
 __author__ = "Fabio Steven Tovar Ramos"
 __version__ = "1.0"
 __email__ = "fstovarr@unal.edu.co"
 
 parser = argparse.ArgumentParser(description='Start simulation script on/off')
+parser.add_argument('--port',
+                    type=int,
+                    default=5555,
+                    help='Start ns-3 simulation script on a specified port, Default: 1')
 parser.add_argument('--start',
                     type=int,
                     default=1,
@@ -79,7 +84,7 @@ startSim = bool(args.start)
 simTime = int(args.simTime)
 stepTime = int(args.stepTime)
 verbose = bool(args.verbose)
-port = 5555
+port = int(args.port)
 seed = 1
 simArgs = { "--simTime": simTime, '--stepTime': stepTime }
 debug = False
@@ -109,6 +114,7 @@ cognitiveSim = CognitiveSimulator(env, agent2, verbose=verbose)
 try:
     # Training
     if training:
+        print("Training started")
         epTmp = episodes
         while epTmp != 0:
             X = []
@@ -149,22 +155,52 @@ try:
 
     print("Start of environment execution")
 
-    # Choose a random initial action
-    initial_action = env.get_random_action()
-    
-    # Reset environment to real execution with the COGNITIVE AGENT
-    cognitiveSim.reset()
-    cognitiveSim.start(initial_action, simTime // (stepTime * 8))
-    totalPackages, ratePackages, totalPower = cognitiveSim.get_metrics()
-    print("COGNITIVE: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
+    cognitive_results = []
+    binary_results = []
 
-    # Reset environment to real execution with the BINARY AGENT
-    binarySim.reset()
-    binarySim.start(initial_action, simTime // (stepTime * 8))
-    totalPackages, ratePackages, totalPower = binarySim.get_metrics()
-    print("BINARY: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
+    for i in range(episodes):
+        # Choose a random initial action
+        initial_action = env.get_random_action()
+
+        seed += 1
+        
+        # Reset environment to real execution with the COGNITIVE AGENT
+        cognitiveSim.reset(seed)
+        X, Y = cognitiveSim.start(initial_action, stepsByEpisode)
+        if verbose:
+            print(X)
+            print(Y)
+        totalPackages, ratePackages, totalPower = cognitiveSim.get_metrics()
+        cognitive_results += [[i, totalPackages, ratePackages, totalPower]]
+        print("COGNITIVE: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
+
+        # Reset environment to real execution with the BINARY AGENT
+        binarySim.reset(seed)
+        binarySim.start(initial_action, stepsByEpisode)
+        if verbose:
+            print(X)
+            print(Y)
+        totalPackages, ratePackages, totalPower = binarySim.get_metrics()
+        binary_results += [[i, totalPackages, ratePackages, totalPower]]
+        print("BINARY: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
+    
+    print("SAVING DATA")
+
+    print(cognitive_results)
+    print(binary_results)
+
+    df_c = pd.DataFrame(cognitive_results, columns=['c_episode', 'c_packages', 'c_rate', 'c_power'])
+    df_b = pd.DataFrame(binary_results, columns=['b_episode', 'b_packages', 'b_rate', 'b_power'])
+    print(df_c)
+    print(df_b)
+
+    df = pd.concat([df_c, df_b], axis=1)
+    print(df)
+    df.to_csv("data/real_{}_{}_{}.csv".format(currentTime, episodes, stepsByEpisode), mode='a', header=False)
+    df.to_csv("data/real_data.csv", mode='a', header=False)
 except KeyboardInterrupt:
     print("Ctrl-C -> Exit")
 finally:
     env.close()
     print("Done")
+# ./multiagent.py --stepsByEpisode=5 --episodes=3 --verbose=True
