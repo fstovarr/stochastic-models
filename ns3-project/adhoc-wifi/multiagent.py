@@ -184,6 +184,7 @@ try:
         binary_results += [[i, totalPackages, ratePackages, totalPower]]
         print("BINARY: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
     
+<<<<<<< HEAD
     print("SAVING DATA")
 
     print(cognitive_results)
@@ -198,6 +199,19 @@ try:
     print(df)
     df.to_csv("data/real_{}_{}_{}.csv".format(currentTime, episodes, stepsByEpisode), mode='a', header=False)
     df.to_csv("data/real_data.csv", mode='a', header=False)
+=======
+    # Reset environment to real execution with the COGNITIVE AGENT
+    cognitiveSim.reset()
+    cognitiveSim.start(initial_action, simTime // (stepTime * (ceil(log2(total_actions)) + 1)))
+    totalPackages, ratePackages, totalPower = cognitiveSim.get_metrics()
+    print("COGNITIVE: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
+
+    # Reset environment to real execution with the BINARY AGENT
+    binarySim.reset()
+    binarySim.start(initial_action, (stepTime * (ceil(log2(total_actions)) + 1)))
+    totalPackages, ratePackages, totalPower = binarySim.get_metrics()
+    print("BINARY: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
+>>>>>>> e916c3ab8b69c0ca38eeb379e07fc0d6353c9e57
 except KeyboardInterrupt:
     print("Ctrl-C -> Exit")
 finally:
