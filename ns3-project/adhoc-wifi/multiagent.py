@@ -154,13 +154,13 @@ try:
     
     # Reset environment to real execution with the COGNITIVE AGENT
     cognitiveSim.reset()
-    cognitiveSim.start(initial_action, simTime // (stepTime * 8))
+    cognitiveSim.start(initial_action, simTime // (stepTime * (ceil(log2(total_actions)) + 1)))
     totalPackages, ratePackages, totalPower = cognitiveSim.get_metrics()
     print("COGNITIVE: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
 
     # Reset environment to real execution with the BINARY AGENT
     binarySim.reset()
-    binarySim.start(initial_action, simTime // (stepTime * 8))
+    binarySim.start(initial_action, (stepTime * (ceil(log2(total_actions)) + 1)))
     totalPackages, ratePackages, totalPower = binarySim.get_metrics()
     print("BINARY: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
 except KeyboardInterrupt:
