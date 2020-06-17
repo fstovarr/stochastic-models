@@ -1,6 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# MIT License
+
+# Copyright (c) 2020 Fabio Steven Tovar Ramos <fabiostovarr@gmail.com>
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import argparse                                         # Load variables from command line
 from ns3gym import ns3env                               # NS3 environment library
 import pandas as pd                                     # Pandas to manage data
@@ -78,7 +100,7 @@ radio = -1
 
 # Agents instantiation
 agent1 = BinaryAgent(total_actions)
-agent2 = CognitiveAgent(3, total_actions)
+agent2 = CognitiveAgent(3)
 helper = NodesHelper()
 
 binarySim = BinarySimulator(env, agent1, verbose=verbose)
@@ -106,8 +128,8 @@ try:
             df_x = pd.DataFrame(X, columns=['time', 'radio', 'reward', 'distance'])
             df_y = pd.DataFrame({'power': Y})
             df = pd.concat([df_x, df_y], axis=1)
-            df.to_csv("{}_{}_{}.csv".format(currentTime, episodes, stepsByEpisode), mode='a', header=False)
-            df.to_csv("data.csv", mode='a', header=False)
+            df.to_csv("data/{}_{}_{}.csv".format(currentTime, episodes, stepsByEpisode), mode='a', header=False)
+            df.to_csv("data/data.csv", mode='a', header=False)
 
     if training:    
         df = df[df['reward']==1].reset_index()          # Select valid data
@@ -122,7 +144,7 @@ try:
 
         print("Learning finished")
     else:
-        df = pd.read_csv("data.csv", index_col=0)            # Load data from file
+        df = pd.read_csv("data/data.csv", index_col=0)            # Load data from file
         agent2.load_state()
 
     print("Start of environment execution")
@@ -132,13 +154,13 @@ try:
     
     # Reset environment to real execution with the COGNITIVE AGENT
     cognitiveSim.reset()
-    cognitiveSim.start(initial_action, simTime // stepTime)
+    cognitiveSim.start(initial_action, simTime // (stepTime * 8))
     totalPackages, ratePackages, totalPower = cognitiveSim.get_metrics()
     print("COGNITIVE: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
 
     # Reset environment to real execution with the BINARY AGENT
     binarySim.reset()
-    binarySim.start(initial_action, simTime // stepTime)
+    binarySim.start(initial_action, simTime // (stepTime * 8))
     totalPackages, ratePackages, totalPower = binarySim.get_metrics()
     print("BINARY: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
 except KeyboardInterrupt:

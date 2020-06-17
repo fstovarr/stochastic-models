@@ -18,14 +18,19 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("network");
+NS_LOG_COMPONENT_DEFINE ("adhoc-wifi");
 
+// Auxiliary variables to get some parameters
 float rcvPackages = 0.0, lastRecvPackages = 0.0;
 double accRtt = 0.0, lastAccRtt = 0.0;
 
+// Available power levels for the wifi manager
 double txPowerLevels = 50;
+
+// Variable that control the seconds in which the nodes will be without movement
 uint32_t secondsPaused = ((int) (log2(txPowerLevels) + 0.5)) + 1;
 
+// The observation space is a tuple
 Ptr<OpenGymSpace> GetObservationSpace() 
 {
   Ptr<OpenGymTupleSpace> space = CreateObject<OpenGymTupleSpace> ();
@@ -33,6 +38,7 @@ Ptr<OpenGymSpace> GetObservationSpace()
   return space;
 }
 
+// The action space is the available power levels
 Ptr<OpenGymSpace> GetActionSpace() 
 {
   Ptr<OpenGymDiscreteSpace> space = CreateObject<OpenGymDiscreteSpace> (txPowerLevels);
@@ -40,6 +46,7 @@ Ptr<OpenGymSpace> GetActionSpace()
   return space;
 }
 
+// The ping's RTT and received packages, and a vector with all positions of nodes are the observation for the agents 
 Ptr<OpenGymDataContainer> GetObservation() 
 {
   Ptr<OpenGymTupleContainer> container = CreateObject<OpenGymTupleContainer> ();
@@ -76,6 +83,7 @@ Ptr<OpenGymDataContainer> GetObservation()
   return container;
 }
 
+// If there are new packages in this step, the reward will be 1, otherwise 0
 float GetReward() 
 {
   return ((rcvPackages - lastRecvPackages) >= 1) ? 1 : 0;
@@ -91,6 +99,7 @@ std::string GetExtraInfo()
   return "";
 }
 
+// The power level of the wifi manager of each node is changed by the action choosen by the agent
 bool ExecuteActions(Ptr<OpenGymDataContainer> action) 
 {
   Ptr<OpenGymDiscreteContainer> discrete = DynamicCast<OpenGymDiscreteContainer>(action);
@@ -176,7 +185,7 @@ int main(int argc, char *argv[])
   NodeContainer nodes;
   nodes.Create (nNodes);
 
-  // Position and mobility
+  // Each node will have a random position with a max radio of 0.5 meters
   MobilityHelper mobility;
   mobility.SetPositionAllocator (
     "ns3::RandomDiscPositionAllocator",
@@ -186,6 +195,8 @@ int main(int argc, char *argv[])
     "Rho", StringValue ("ns3::UniformRandomVariable[Min=0|Max=0.5]") // Radio
   );
 
+  // Each node will move from its start position in a bounded box of 5x5
+  // The nodes start stopped (Speed 0)
   mobility.SetMobilityModel (
     "ns3::RandomWalk2dMobilityModel",
     "Mode", StringValue ("Time"),
@@ -196,7 +207,7 @@ int main(int argc, char *argv[])
 
   mobility.Install(nodes);
 
-  // WiFi config
+  // WiFi configuration with a loss propagation that depends on the distance to be more realistic 
   YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
   channel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
   channel.AddPropagationLoss (
@@ -205,17 +216,21 @@ int main(int argc, char *argv[])
     "Exponent", DoubleValue (1)
   );
 
+  // WiFi Physical layer
   YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
   phy.SetChannel (channel.Create ());
   phy.EnablePcapAll (std::string ("aodv"));
 
-  phy.Set ("TxPowerStart", DoubleValue (txPowerStart));
-  phy.Set ("TxPowerEnd", DoubleValue (txPowerEnd));
+  // Definition of minimum and maximum transmission power and its different levels
+  phy.Set ("TxPowerStart", DoubleValue (txPowerStart));     
+  phy.Set ("TxPowerEnd", DoubleValue (txPowerEnd));     
   phy.Set ("TxPowerLevels", UintegerValue (txPowerLevels));
 
+  // Adhoc mac layer
   WifiMacHelper mac;
   mac.SetType("ns3::AdhocWifiMac");
 
+  // Remote station configuration with the first level as default
   WifiHelper wifi;
   wifi.SetRemoteStationManager (
     "ns3::ConstantRateWifiManager", 
@@ -225,6 +240,7 @@ int main(int argc, char *argv[])
   NetDeviceContainer devices;
   devices = wifi.Install(phy, mac, nodes);
 
+  // Set the Adhoc On-Demand Distance Vector routing
   AodvHelper aodv;
   InternetStackHelper internet;
   internet.SetRoutingHelper (aodv);
@@ -245,33 +261,8 @@ int main(int argc, char *argv[])
   p.Start (Seconds (0));
   p.Stop (Seconds (simulationTime));
 
+  // Connect a callback with to get the ping results
   Config::Connect ("/NodeList/" + std::to_string(0) + "/ApplicationList/*/$ns3::V4Ping/Rtt", MakeCallback (&PingRtt));
-
-  // OnOff traffic
-  // OnOffHelper onOffHelper ("ns3::TcpSocketFactory", interfaces.GetAddress (nNodes - 1));
-  // // onOffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=10]"));
-  // // onOffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=10]"));
-  // onOffHelper.SetAttribute ("DataRate", StringValue ("2Mbps"));
-  // onOffHelper.SetAttribute ("PacketSize", UintegerValue(1280));
-
-  // ApplicationContainer p = onOffHelper.Install (nodes.Get (0));
-  // p.Start (Seconds (0));
-  // p.Stop (Seconds (simulationTime));
-
-  // PacketSinkHelper sink = PacketSinkHelper ("ns3::TcpSocketFactory", interfaces.GetAddress (nNodes - 1));
-  // ApplicationContainer apps = sink.Install (nodes.Get (nNodes - 1));
-  // apps.Start (Seconds (0.0));
-  // apps.Stop (Seconds (simulationTime));
-
-  // Config::ConnectWithoutContext ("/NodeList/*/ApplicationList/0/$ns3::PacketSink/Rx", 
-  //                                MakeCallback (&SinkRx));
-
-  // Config::ConnectWithoutContext ("/NodeList/*/ApplicationList/*/$ns3::OnOffApplication/Tx", MakeCallback (&OnOffRx));
-
-  // for (uint32_t i = 0; i < nNodes; i++) {
-  //   interfaces.GetAddress(i).Print(std::cout);
-  //   printf("\n");
-  // }
 
   // Opengym Environment
   Ptr<OpenGymInterface> openGymInterface = CreateObject<OpenGymInterface> (openGymPort);
@@ -283,6 +274,7 @@ int main(int argc, char *argv[])
   openGymInterface->SetGetExtraInfoCb( MakeCallback (&GetExtraInfo) );
   openGymInterface->SetExecuteActionsCb( MakeCallback (&ExecuteActions) );
 
+  // Pause all nodes at the start
   Simulator::Schedule (Seconds(0.0), &PauseNodeMobility, envStepTime);
   Simulator::Schedule (Seconds(0.0), &ScheduleNextStateRead, envStepTime, openGymInterface);
 

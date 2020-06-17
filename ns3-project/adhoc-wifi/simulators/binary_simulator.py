@@ -1,32 +1,31 @@
 import sys
 sys.path.append("..")
-
 from nodes_helper import NodesHelper
+from simulator import Simulator
 
-class BinarySimulator:
-    def __init__(self, env, agent, verbose=False):
-        self.env = env
-        self.agent = agent
-        self.helper = NodesHelper()
-        self.verbose = verbose
-        self.totalPower = 0
-        self.receivedPackages = 0
-        self.time = 0
-        self.steps = 0
+class BinarySimulator(Simulator):
+    """This class allows to the binary agent performing in an easy and reusable way
+    """
     
     def reset(self, seed=1):
-        self.env.set_seed(seed)
-        self.env.reset()
+        """Reset the simulator state and the enviroment
+
+        Keyword Arguments:
+            seed {int} -- NS3 environment seed (default: {1})
+        """
+        super().reset(seed)
         self.agent.reset()
-        self.time = 0
-        self.totalPower = 0
-        self.receivedPackages = 0
-        self.steps = 0
-    
-    def get_metrics(self):
-        return (self.receivedPackages, self.receivedPackages / self.steps, self.totalPower)
 
     def start(self, initial_action, steps):
+        """Start the simulation
+
+        Arguments:
+            initial_action {integer} -- Initial action of the agent
+            steps {integer} -- Number of nodes position variations
+
+        Returns:
+            tuple -- Data collected by the simulator, i.e. time, radio, reward and distance in the first position, and the corresponding power in the second
+        """
         X = []
         Y = []
 
@@ -39,7 +38,7 @@ class BinarySimulator:
         while steps > 0:
             self.steps += 1
             self.totalPower += action
-            obs, reward, done, info = self.env.step(action)             # Execute action and move in time
+            obs, reward, done, info = self.env.step(action)                  # Execute action and move in time
             
             radio = self.helper.get_radio(obs[2])                            # Nodes distribution radio
             distance = self.helper.calc_distance(obs[2][0], obs[2][-1])      # Distance between source and receiver nodes
@@ -49,8 +48,8 @@ class BinarySimulator:
             
             # If the agents change their position, save the optimal action found
             if lastRadio != radio and lastRadio != -1:
-                X.append([self.time, lastRadio, lastReward, lastDistance])   # Save time, radio, reward, and distance between source and receiver
-                Y.append(action)                                      # Save the found action
+                X.append([self.time, lastRadio, lastReward, lastDistance])      # Save time, radio, reward, and distance between source and receiver
+                Y.append(action)                                                # Save the found action
 
                 steps -= 1
 
@@ -65,5 +64,5 @@ class BinarySimulator:
             lastReward = reward                                     # Update last reward
             lastDistance = distance                                 # Update last distance
         
-        self.receivedPackages = obs[1][0]
+        self.receivedPackets = obs[1][0]
         return (X, Y)

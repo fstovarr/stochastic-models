@@ -1,29 +1,22 @@
 import sys
 sys.path.append("..")
 from nodes_helper import NodesHelper
+from simulator import Simulator
 
-class CognitiveSimulator:
-    def __init__(self, env, agent, verbose=False):
-        self.env = env
-        self.agent = agent
-        self.helper = NodesHelper()
-        self.verbose = verbose
-        self.totalPower = 0
-        self.receivedPackages = 0
-        self.time = 0
-        self.steps = 0
-    
-    def reset(self, seed=1):
-        self.env.reset()
-        self.time = 0
-        self.totalPower = 0
-        self.receivedPackages = 0
-        self.steps = 0
-
-    def get_metrics(self):
-        return (self.receivedPackages, self.receivedPackages / (self.steps), self.totalPower)
+class CognitiveSimulator(Simulator):
+    """This class allows to the cognitive agent performing in an easy and reusable way
+    """
 
     def start(self, initial_action, steps):
+        """Start the simulation
+
+        Arguments:
+            initial_action {integer} -- Initial action of the agent
+            steps {integer} -- Number of nodes position variations
+
+        Returns:
+            tuple -- Data collected by the simulator, i.e. time, radio, reward and distance in the first position, and the corresponding power in the second
+        """
         X = []
         Y = []
 
@@ -51,11 +44,11 @@ class CognitiveSimulator:
                 steps -= 1
                 self.time += 1                                      # Update steps counter
             
-            action = self.agent.get_action(self.time + 1, distance, radio)      # Calculate the next action according to the reward and action
+            action = self.agent.get_action([self.time + 1, distance, radio])      # Calculate the next action according to the reward and action
             
             lastRadio = radio                                       # Update last radio
             lastReward = reward                                     # Update last reward
             lastDistance = distance                                 # Update last distance
         
-        self.receivedPackages = obs[1][0]
+        self.receivedPackets = obs[1][0]
         return (X, Y)
