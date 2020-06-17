@@ -1,7 +1,7 @@
 import sys
 sys.path.append("..")
 from nodes_helper import NodesHelper
-from simulator import Simulator
+from .simulator import Simulator
 
 class CognitiveSimulator(Simulator):
     """This class allows to the cognitive agent performing in an easy and reusable way

@@ -1,7 +1,7 @@
 import sys
 sys.path.append("..")
 from nodes_helper import NodesHelper
-from simulator import Simulator
+from .simulator import Simulator
 
 class BinarySimulator(Simulator):
     """This class allows to the binary agent performing in an easy and reusable way

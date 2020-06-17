@@ -1,6 +1,6 @@
 from functools import reduce
 import numpy as np
-from agent import Agent
+from .agent import Agent
 
 class BinaryAgent(Agent):
     """Agent that adjust their value through a binary search

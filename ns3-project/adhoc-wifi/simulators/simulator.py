@@ -26,7 +26,7 @@ class Simulator:
         self.steps = 0
     
     def reset(self, seed=1):
-          """Reset the simulator state and the enviroment
+        """Reset the simulator state and the enviroment
 
         Keyword Arguments:
             seed {int} -- NS3 environment seed (default: {1})
