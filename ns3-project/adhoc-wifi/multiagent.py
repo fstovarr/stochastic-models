@@ -116,10 +116,10 @@ try:
     if training:
         print("Training started")
         epTmp = episodes
-        while epTmp != 0:
-            X = []
-            Y = []
-            
+        X = []
+        Y = []
+        
+        while epTmp != 0:            
             seed += 1                                               # Change the simulation seed for each episode
             initial_action = env.get_random_action()                # Choose a random initial action
             binarySim.reset(seed)                                   # Reset simulation and set the new seed
@@ -158,7 +158,7 @@ try:
     cognitive_results = []
     binary_results = []
 
-    for i in range(episodes):
+    for i in range(41, stepsByEpisode + 1):
         # Choose a random initial action
         initial_action = env.get_random_action()
 
@@ -166,7 +166,7 @@ try:
         
         # Reset environment to real execution with the COGNITIVE AGENT
         cognitiveSim.reset(seed)
-        X, Y = cognitiveSim.start(initial_action, stepsByEpisode)
+        X, Y = cognitiveSim.start(initial_action, i)
         if verbose:
             print(X)
             print(Y)
@@ -176,7 +176,7 @@ try:
 
         # Reset environment to real execution with the BINARY AGENT
         binarySim.reset(seed)
-        binarySim.start(initial_action, stepsByEpisode)
+        binarySim.start(initial_action, i)
         if verbose:
             print(X)
             print(Y)
@@ -184,7 +184,6 @@ try:
         binary_results += [[i, totalPackages, ratePackages, totalPower]]
         print("BINARY: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
     
-<<<<<<< HEAD
     print("SAVING DATA")
 
     print(cognitive_results)
@@ -199,22 +198,9 @@ try:
     print(df)
     df.to_csv("data/real_{}_{}_{}.csv".format(currentTime, episodes, stepsByEpisode), mode='a', header=False)
     df.to_csv("data/real_data.csv", mode='a', header=False)
-=======
-    # Reset environment to real execution with the COGNITIVE AGENT
-    cognitiveSim.reset()
-    cognitiveSim.start(initial_action, simTime // (stepTime * (ceil(log2(total_actions)) + 1)))
-    totalPackages, ratePackages, totalPower = cognitiveSim.get_metrics()
-    print("COGNITIVE: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
-
-    # Reset environment to real execution with the BINARY AGENT
-    binarySim.reset()
-    binarySim.start(initial_action, (stepTime * (ceil(log2(total_actions)) + 1)))
-    totalPackages, ratePackages, totalPower = binarySim.get_metrics()
-    print("BINARY: Packages: {} | Rate: {}% | Accumulated power: {}".format(totalPackages, ratePackages * 100, totalPower))
->>>>>>> e916c3ab8b69c0ca38eeb379e07fc0d6353c9e57
 except KeyboardInterrupt:
     print("Ctrl-C -> Exit")
 finally:
     env.close()
     print("Done")
-# ./multiagent.py --stepsByEpisode=5 --episodes=3 --verbose=True
+# ./multiagent.py --stepsByEpisode=25 --port=5558 --verbose=True
