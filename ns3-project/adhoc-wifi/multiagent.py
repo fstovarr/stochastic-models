@@ -158,7 +158,7 @@ try:
     cognitive_results = []
     binary_results = []
 
-    for i in range(41, stepsByEpisode + 1):
+    for i in range(stepsByEpisode):
         # Choose a random initial action
         initial_action = env.get_random_action()
 
