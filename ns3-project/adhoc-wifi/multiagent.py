@@ -118,7 +118,7 @@ try:
         epTmp = episodes
         X = []
         Y = []
-        
+
         while epTmp != 0:            
             seed += 1                                               # Change the simulation seed for each episode
             initial_action = env.get_random_action()                # Choose a random initial action
@@ -158,7 +158,7 @@ try:
     cognitive_results = []
     binary_results = []
 
-    for i in range(stepsByEpisode):
+    for i in range(1, stepsByEpisode):
         # Choose a random initial action
         initial_action = env.get_random_action()
 
