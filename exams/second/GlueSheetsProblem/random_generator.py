@@ -7,7 +7,7 @@ class RandomGenerator():
         self.idx = -1
         self.tmp = [3, 1, 2, 3, 1, 2, 3, 1, 2]
 
-    def get_value(self, low, high):
-        #return self.__rg.randint(low, high)
-        self.idx += 1
-        return self.tmp[self.idx]
+    def get_int(self, low, high):
+        return self.__rg.randint(low, high)
+        # self.idx += 1
+        # return self.tmp[self.idx]

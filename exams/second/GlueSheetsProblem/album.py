@@ -28,6 +28,9 @@ class Album():
     def has_surplus(self):
         return self.__surplus_count > 0
 
+    def get_surplus_count(self):
+        return self.__surplus_count
+
     def get_surplus(self):
         return list(filter(lambda x: x[1] > 0, enumerate(self.__surplus)))
 
@@ -38,4 +41,4 @@ class Album():
             self.__surplus[sheet] -= 1
 
     def __str__(self):
-        return ">> \nState: \n" + ' | '.join(str(i) + ' x ' if s else str(i) + ' - ' for (i, s) in enumerate(self.__state)) + '\nSurplus:\n' + ' | '.join("{} {}".format(i, s) for (i, s) in enumerate(self.__surplus)) + '\n'
+        return '\t|\t'.join(str(i) + ' x' if s else str(i) + ' -' for (i, s) in enumerate(self.__state)) + '\n' + '\t|\t'.join("{} {}".format(i, s) for (i, s) in enumerate(self.__surplus))

@@ -6,5 +6,8 @@ class Environment():
         self.__sheets_count = album_sheets
 
     def get_sheet(self):
-        return self.__rg.get_value(0, self.__sheets_count)
+        return self.__rg.get_int(0, self.__sheets_count)
+
+    def get_sheets_count(self):
+        return self.__sheets_count
 
