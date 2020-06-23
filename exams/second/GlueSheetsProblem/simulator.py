@@ -31,6 +31,8 @@ class Simulator():
             
             if self.__verbose:
                 print(' '.join(str(a[0]) for a in full_agents))
+                print(str(self.__agents[7]))
+                print("Total: {}\tCompleted: {}".format(len(self.__agents), len(self.__full_agents)))
                 print("-------------------------\n")
             
             self.__full_agents.extend(full_agents)
@@ -57,14 +59,20 @@ class Simulator():
 
     def exchange_stage(self):
         full_agents = []
-        flag = False
+        flags = [False, False]
         
         for agent in self.__agents:
             if agent.has_surplus():
-                flag = agent.get_state() == AgentState.LOOKING_FOR_SHEETS
-                agent.try_exchanging()
-                if flag and agent.get_state() == AgentState.COMPLETED:
+                flags[0] = agent.get_state() == AgentState.LOOKING_FOR_SHEETS
+                (friend_list, own_list, friend) = agent.look_for_exchange()
+                
+                flags[1] = friend.get_state() == AgentState.LOOKING_FOR_SHEETS
+                agent.do_exchange(friend_list, own_list, friend)
+
+                if flags[0] and agent.get_state() == AgentState.COMPLETED:
                     full_agents.append([agent, "exchange"])
+                if flags[1] and friend.get_state() == AgentState.COMPLETED:
+                    full_agents.append([friend, "exchange"])
         return full_agents
 
     ### Private functions

@@ -8,11 +8,13 @@ class AgentHelper():
         rd = RandomGenerator()
         if num_agents > 1:        
             for agent in agents:
-                friends = rd.get_int(0, album_sheets - 1)
+                max_recursions = 10
+                friends = rd.get_int(0, num_agents - 1)
                 for i in range(friends):
-                    friend = agents[rd.get_int(0, album_sheets - 1)]
-                    while friend != agent and friend.idx != agent.idx:
-                        friend = agents[rd.get_int(0, album_sheets - 1)]
+                    friend = agents[rd.get_int(0, num_agents - 1)]
+                    while friend != agent and friend.idx != agent.idx and max_recursions > 0:
+                        friend = agents[rd.get_int(0, num_agents - 1)]
+                        max_recursions -= 1
                     agent.add_friend(friend)
                     friend.add_friend(agent)
         return agents

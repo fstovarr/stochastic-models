@@ -12,10 +12,9 @@ class Agent():
         self.__state = AgentState.LOOKING_FOR_SHEETS
         self.idx = idx
 
-    def try_exchanging(self):
+    def look_for_exchange(self):
         if not len(self.__friends) > 0 or not self.has_surplus():
             return
-
         missing = self.get_missing_sheets()
         max_id = -1
         max_list_1 = []
@@ -34,14 +33,18 @@ class Agent():
             tmp_2 = self.check_missing_list(friend.get_missing_sheets())
             if len(tmp_2) <= len(max_list_2):
                 continue
+            
             max_list_1 = tmp
             max_list_2 = tmp_2
             max_id = i
             
             if len(max_list_1) == len(missing):
                 break
-        self.__friends[max_id].exchange_sheets(max_list_2, max_list_1)
-        self.exchange_sheets(max_list_1, max_list_2)
+        return (max_list_1, max_list_2, self.__friends[max_id])
+    
+    def do_exchange(self, list1, list2, friend):
+        friend.exchange_sheets(list2, list1)
+        self.exchange_sheets(list1, list2)
     
     def add_friend(self, friend):
         self.__friends.append(friend)
@@ -98,4 +101,4 @@ class Agent():
         self.__state = AgentState.COMPLETED if self.__album.is_full() else AgentState.LOOKING_FOR_SHEETS
 
     def __str__(self):
-        return "\nAlbum:\n" + str(self.__album) + "\nState:" + str(self.__state)
+        return "\n\nAgent: {}".format(self.idx) + "\nAlbum:\n" + str(self.__album) + "\nState:" + str(self.__state)
