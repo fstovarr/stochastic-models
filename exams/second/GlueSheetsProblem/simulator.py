@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 class Simulator():
-    def __init__(self, env, agents, limit_time=4000, verbose=False):
+    def __init__(self, env, agents, limit_time=40000, verbose=False):
         self.__time = 0
         self.__env = env
         self.__agents = agents
