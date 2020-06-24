@@ -14,8 +14,7 @@ class RandomGenerator():
         """
 
         rd.seed(seed)
-        self.idx = -1
-        self.tmp = [3, 1, 2, 3, 1, 2, 3, 1, 2]
+        self.distribution = distribution
         self.__random_args = [lower_bound, upper_bound]
         
         self.__set_random(distribution)

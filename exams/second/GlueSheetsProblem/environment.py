@@ -10,3 +10,6 @@ class Environment():
 
     def get_sheets_count(self):
         return self.__sheets_count
+
+    def get_distribution(self):
+        return self.__rg.distribution

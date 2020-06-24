@@ -90,7 +90,7 @@ class Simulator():
     def __collect_metrics(self, agents):
         metrics = ""
         for (agent, stage) in agents:
-            metrics = "{},{},{},{},{},{}\n".format(self.__time, self.__env.get_sheets_count(), agent.get_metrics(), len(self.__agents), len(self.__full_agents), stage)
+            metrics = "{},{},{},{},{},{},{}\n".format(self.__env.get_distribution(), self.__time, self.__env.get_sheets_count(), agent.get_metrics(), len(self.__agents), len(self.__full_agents), stage)
         if metrics != "":
             f = open(self.__general_filename, "a+")
             # f2 = open(self.__specific_filename, "a+")
