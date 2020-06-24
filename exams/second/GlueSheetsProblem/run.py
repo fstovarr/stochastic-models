@@ -1,8 +1,7 @@
 from random_generator import RandomGenerator
 from agent_helper import AgentHelper
 from environment import Environment
-from simulator import Simulator
-from agent import Agent
+from system import System
 
 from multiprocessing import Process
 from itertools import product
@@ -15,7 +14,6 @@ __version__ = "1.0"
 __email__ = "fstovarr@unal.edu.co"
 
 def start(data, seed):
-    print(len(data))
     for d in data:
         distribution, sheets, agents = d
         try:
@@ -28,7 +26,6 @@ def start(data, seed):
             print("error with {},{}".format(sheets, agents))
 
 if __name__ == '__main__':
-    print("START")
     parser = argparse.ArgumentParser(description='Run simulation')
     parser.add_argument('--procs',
                         type=int,

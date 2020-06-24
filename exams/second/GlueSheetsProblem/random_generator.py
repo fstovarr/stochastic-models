@@ -8,8 +8,9 @@ class RandomGenerator():
         """Class constructor
 
         Args:
-            distribution (string): Distribution of random generator
-            args (exponential): lower bound, upper bound
+            distribution (string): Distribution of random generator ('exponential' or 'uniform')
+            lower_bound (int): Lower bound of numbers generated
+            upper_bound (int): Upper bound of numbers generated
             seed (int, optional): Random generator seed. Defaults to 0.
         """
 

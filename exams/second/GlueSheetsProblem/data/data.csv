@@ -1,3 +1,4 @@
+distribution,time,sheets,id,friends,surplus,agents,full_agents,stage
 exponential,51,10,0,0,42,2,1,buy
 exponential,110,10,1,2,101,2,2,buy
 exponential,18,10,2,8,12,10,1,exchange
