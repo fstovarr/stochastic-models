@@ -20,7 +20,7 @@ def start(data, seed):
         try:
             store = Store(distribution, sheets, seed=seed)
             agn = AgentHelper.create_agents(int(agents), album_sheets=int(sheets))
-            system = System(store, agn, verbose=True)
+            system = System(store, agn)
 
             env = Environment.create(system, store, limit_time=1000)
             env.start()

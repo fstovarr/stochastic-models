@@ -14,7 +14,6 @@ class System():
         self.__full_agents = []
         self.__state = SystemState.RUNNING
         self.__verbose = verbose
-        print(agents)
     
     def step(self):
         full_agents = []
