@@ -2,6 +2,7 @@ from random_generator import RandomGenerator
 from agent_helper import AgentHelper
 from environment import Environment
 from system import System
+from store import Store
 
 from multiprocessing import Process
 from itertools import product
@@ -17,13 +18,14 @@ def start(data, seed):
     for d in data:
         distribution, sheets, agents = d
         try:
+            store = Store(distribution, sheets, seed=seed)
             agn = AgentHelper.create_agents(int(agents), album_sheets=int(sheets))
-            rg = RandomGenerator(distribution, 0, int(sheets - 1), seed=seed)
-            env = Environment(album_sheets=int(sheets), rg=rg)
-            simulator = Simulator(env, agn)
-            simulator.start()
-        except:
-            print("error with {},{}".format(sheets, agents))
+            system = System(store, agn, verbose=True)
+
+            env = Environment.create(system, store, limit_time=1000)
+            env.start()
+        except Exception as err:
+            print("error with {},{} | {}".format(sheets, agents, err))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run simulation')
@@ -44,8 +46,9 @@ if __name__ == '__main__':
 
     print("Running in {} processes".format(procs))
 
-    sheets = [10, 20, 50, 100, 200, 400, 700]
-    agents = [2, 5, 10, 20, 30]
+    sheets = [10, 20, 50, 100, 200, 400, 700, 1400]
+    agents = [2, 5, 10, 20, 30, 50]
+
     distributions = [('exponential'), ('uniform')]
     seed = 0
 

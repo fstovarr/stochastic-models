@@ -1,13 +1,14 @@
+from pathlib import Path
+
 class Observer:
     def __init__(self):
         self.__general_filename = "data/data.csv"
-        self.__specific_filename = "data/{}_{}_{}.csv".format(self.__env.get_sheets_count(), len(self.__agents), datetime.now().strftime("%d%m%Y%H%M%S"))
         self.__init_file()
 
-    def collect_metrics(self, agents):
+    def collect_metrics(self, time, agents_completed, distribution, agents_count, full_agents):
         metrics = ""
-        for (agent, stage) in agents:
-            metrics = "{},{},{},{},{},{},{}\n".format(self.__env.get_distribution(), self.__time, self.__env.get_sheets_count(), agent.get_metrics(), len(self.__agents), len(self.__full_agents), stage)
+        for (agent, stage) in agents_completed:
+            metrics = "{},{},{},{},{},{},{}\n".format(distribution, time, agent.get_album_size(), agent.get_metrics(), agents_count, full_agents, stage)
         if metrics != "":
             self.__write_in_file(metrics)
 

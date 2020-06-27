@@ -8,12 +8,13 @@ class SystemState(Enum):
     RUNNING = 0
 
 class System():
-    def __init__(self, env, agents, verbose=False):
-        self.__env = env
+    def __init__(self, store, agents, verbose=False):
+        self.__store = store
         self.__agents = agents
         self.__full_agents = []
         self.__state = SystemState.RUNNING
         self.__verbose = verbose
+        print(agents)
     
     def step(self):
         full_agents = []
@@ -26,12 +27,21 @@ class System():
             full_agents.extend(agents_2)
         
         if self.__verbose:
-            print(' '.join(str(a[0]) for a in full_agents))
+            print(' '.join(str(a) for a in self.__agents))
             print("Total: {}\tCompleted: {}".format(len(self.__agents), len(self.__full_agents)))
             print("-------------------------\n")
-            
+
+        if len(self.__full_agents) == len(self.__agents):
+            self.__state = SystemState.COMPLETED
+
         self.__full_agents.extend(full_agents)
         return full_agents
+
+    def get_agents_count(self):
+        return len(self.__agents)
+
+    def get_full_agents_count(self):
+        return len(self.__full_agents)
 
     def get_state(self):
         return self.__state
@@ -41,7 +51,7 @@ class System():
 
         for agent in self.__agents:
             if agent.get_state() == AgentState.LOOKING_FOR_SHEETS:
-                sheet = self.__env.get_sheet()
+                sheet = self.__store.get_sheet()
                 if self.__verbose:
                     print("Sheet {}".format(sheet))
                 agent.save_sheet(sheet)
