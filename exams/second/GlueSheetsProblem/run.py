@@ -22,7 +22,7 @@ def start(data, seed):
             agn = AgentHelper.create_agents(int(agents), album_sheets=int(sheets))
             system = System(store, agn)
 
-            env = Environment.create(system, store, limit_time=1000)
+            env = Environment.create(system, store, limit_time=400000)
             env.start()
         except Exception as err:
             print("error with {},{} | {}".format(sheets, agents, err))
