@@ -69,7 +69,7 @@ class Agent():
         return self.__album.get_surplus()
 
     def get_metrics(self):
-        return "{},{},{}".format(self.idx, len(self.__friends), self.__album.get_surplus_count(), self.__purchased_sheets)
+        return "{},{},{},{}".format(self.idx, len(self.__friends), self.__album.get_surplus_count(), self.__purchased_sheets)
 
     def check_missing_list(self, missing):
         surplus = self.__album.get_surplus()
