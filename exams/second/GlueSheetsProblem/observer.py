@@ -1,6 +1,8 @@
 from pathlib import Path
 
-class Observer:
+class Observer():
+    """Observer class to extract and save metrics of the system, environment and agents
+    """
     def __init__(self):
         self.__general_filename = "data/data.csv"
         self.__init_file()

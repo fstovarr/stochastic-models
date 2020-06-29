@@ -4,10 +4,14 @@ from pathlib import Path
 from enum import Enum
 
 class SystemState(Enum):
+    """Enum that represents the state of the system
+    """
     COMPLETED = 1
     RUNNING = 0
 
 class System():
+    """System that will be contain the agents and handle the interactions
+    """
     def __init__(self, store, agents, verbose=False):
         self.__store = store
         self.__agents = agents
@@ -16,6 +20,11 @@ class System():
         self.__verbose = verbose
     
     def step(self):
+        """Perform the actions that should be executed in each step of time
+
+        Returns:
+            list: Completed agents in this time step
+        """
         full_agents = []
         agents = self.__buy_stage()
         if len(agents) > 0:
@@ -46,6 +55,11 @@ class System():
         return self.__state
 
     def __buy_stage(self):
+        """Stage where agents buy new sheets
+
+        Returns:
+            list: Completed agents in this step
+        """
         full_agents = []
 
         for agent in self.__agents:
@@ -59,6 +73,11 @@ class System():
         return full_agents
 
     def __exchange_stage(self):
+        """Stage where the agents do some exchanges based on their necessity
+
+        Returns:
+            list: Completed agents in this stage
+        """
         full_agents = []
         flags = [False, False]
         

@@ -1,6 +1,8 @@
 from enum import Enum
 
 class Album():
+    """Abstraction of the agent's album
+    """
     def __init__(self, size=700):
         self.size = size
         self.__state = [False] * size

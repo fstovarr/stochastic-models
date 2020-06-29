@@ -2,6 +2,8 @@ from system import System, SystemState
 from observer import Observer
 
 class Environment():
+    """Representation of the environment in which the system and the observer will perform
+    """
     def __init__(self, system, store, limit_time=40000, verbose=False):
         self.__time = 0
         self.__limit_time = limit_time
