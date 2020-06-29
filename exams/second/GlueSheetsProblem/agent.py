@@ -2,11 +2,22 @@ from album import Album
 from enum import Enum
 
 class AgentState(Enum):
+    """Enum that represents the possible states of the agent
+    """
     COMPLETED = 1
     LOOKING_FOR_SHEETS = 2
 
 class Agent():
+    """Model of the agent who wants to fill its album through simulation
+    """
+
     def __init__(self, album_sheets=700, idx=0):
+        """Class constructor
+
+        Args:
+            album_sheets (int, optional): Album total sheets. Defaults to 700.
+            idx (int, optional): Agent Identifier. Defaults to 0.
+        """
         self.__friends = []
         self.__album = Album(size=album_sheets)
         self.__state = AgentState.LOOKING_FOR_SHEETS
@@ -14,6 +25,8 @@ class Agent():
         self.__purchased_sheets = 0
 
     def look_for_exchange(self):
+        """Look for the best option to do a exchange based on maximum profit of itself
+        """
         if not len(self.__friends) > 0 or not self.has_surplus():
             return
         missing = self.get_missing_sheets()
@@ -47,6 +60,13 @@ class Agent():
         return self.__album.size
 
     def do_exchange(self, list1, list2, friend):
+        """To do a exchange with an agent
+
+        Args:
+            list1 (list): List of its own sheets
+            list2 (list): List of the friend's sheets 
+            friend (int): Id of the friend in the list
+        """
         friend.exchange_sheets(list2, list1)
         self.exchange_sheets(list1, list2)
     
@@ -72,6 +92,14 @@ class Agent():
         return "{},{},{},{}".format(self.idx, len(self.__friends), self.__album.get_surplus_count(), self.__purchased_sheets)
 
     def check_missing_list(self, missing):
+        """Check weather the agent needs some sheet of a list of possible sheetts
+
+        Args:
+            missing (list): List of possible missing sheets
+
+        Returns:
+            list: List of the missing sheets
+        """
         surplus = self.__album.get_surplus()
         limit = min(len(surplus), len(missing))
         

@@ -2,6 +2,11 @@ from agent import Agent
 from random_generator import RandomGenerator
 
 class AgentHelper():
+    """Helper to create easier the agents and its relationships
+
+    Returns:
+        list: List of friends
+    """
     @staticmethod
     def create_agents(num_agents, album_sheets=700):
         agents = [Agent(album_sheets=album_sheets, idx=i) for i in range(num_agents)]
