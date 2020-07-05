@@ -2,20 +2,17 @@ import pandas as pd
 from numpy import random as rd
 from igraph import Graph, plot
 from enum import Enum
-
-class SystemState(Enum):
-    """Enum that represents the state of the system
-    """
-    COMPLETED = 1
-    RUNNING = 0
+from spectrum_analyzer import SpectrumAnalyzer
+from antenna import Antenna
 
 class System():
     """System that will be contain the agents and handle the interactions
     """
-    def __init__(self, verbose=False):
-        self.__state = SystemState.RUNNING
-        self.__verbose = verbose
-        self.__data = [[rd.rand(), rd.rand()] for i in range(100)]
+    def __init__(self, antennas=10, bounds=((0, 0), (1, 0), (1, 1), (0, 1)), seed=0, verbose=False):
+        rd.seed(seed)
+
+        self.__antennas = [Antenna(rd.rand(), rd.rand(), antennas) for i in range(antennas)]
+        self.__analyzer = SpectrumAnalyzer(bounds, verbose=True)
     
     def step(self):
         """Perform the actions that should be executed in each step of time
@@ -23,10 +20,11 @@ class System():
         Returns:
             list: Completed agents in this time step
         """
+        self.__analyzer.move()
+        self.__analyzer.record_signals(self.__antennas)
+
+    def get_antennas(self):
+        return self.__antennas
+
+    def set_frequencies(self, frequencies):
         pass
-
-    def getTowers(self):
-        return self.__data
-
-    def plot(self):
-        plot(self.__g)

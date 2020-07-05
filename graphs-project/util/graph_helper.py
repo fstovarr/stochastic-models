@@ -1,4 +1,9 @@
 import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+
+from .graph_artist import GraphArtist
+
 from functools import reduce
 from math import sqrt
 
@@ -55,3 +60,22 @@ class GraphHelper:
             float -- Distance between vectors
         """
         return sqrt((v2['x'] - v1['x']) ** 2 + (v2['y'] - v1['y']) ** 2)
+    
+    @staticmethod
+    def plot(graph, figsize=(10, 10), fig=None, ax=None):
+        matplotlib.use("cairo")        
+        if ax == None:
+            fig = plt.figure(figsize=figsize)
+            ax = fig.add_subplot(111)
+
+        bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+        width, height = bbox.width, bbox.height
+
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        graph_artist = GraphArtist(graph, bbox, fig.dpi)
+        ax.artists.append(graph_artist)
+        
+        if fig != None:
+            return fig
+        return ax

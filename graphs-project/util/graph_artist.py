@@ -6,7 +6,7 @@ class GraphArtist(Artist):
     Only Cairo-based backends are supported.
     """
 
-    def __init__(self, graph, figsize, palette=None, *args, **kwds):
+    def __init__(self, graph, figsize, dpi, palette=None, *args, **kwds):
         """Constructs a graph artist that draws the given graph within
         the given bounding box.
 
@@ -29,6 +29,7 @@ class GraphArtist(Artist):
         self.graph = graph
         self.palette = palette or palettes["gray"]
         self.figsize = figsize
+        self.dpi = dpi
         self.args = args
         self.kwds = kwds
 
@@ -36,5 +37,9 @@ class GraphArtist(Artist):
         from matplotlib.backends.backend_cairo import RendererCairo
         if not isinstance(renderer, RendererCairo):
             raise TypeError("graph plotting is supported only on Cairo backends")
-            
-        self.graph.__plot__(renderer.gc.ctx, BoundingBox(60 * self.figsize[0] // 6, 60 * self.figsize[1] // 8, 600 * self.figsize[0] // 12, 600 * self.figsize[1] // 12 ), self.palette, *self.args, **self.kwds)
+        
+        width = (self.figsize.width - 1) * self.dpi 
+        height = (self.figsize.height - 1) * self.dpi
+        left = self.figsize.x0 * self.dpi - (-50/178 * width + 208.7078) + 20
+
+        self.graph.__plot__(renderer.gc.ctx, BoundingBox(left, self.figsize.y0 * self.dpi, width + left, height), self.palette, *self.args, **self.kwds)

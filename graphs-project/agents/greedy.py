@@ -1,7 +1,11 @@
+import sys
+sys.path.append("..")
+
 from .agent import Agent
 
 import numpy as np
-from graph_helper import GraphHelper
+
+from util.graph_helper import GraphHelper
 from igraph import Graph, plot
 
 class GreedyAgent(Agent):
@@ -22,8 +26,8 @@ class GreedyAgent(Agent):
         self.__build_graph(nodes)
     
     def __build_graph(self, data):
-        for (i, row) in enumerate(self.__data):
-            self.__g.add_vertex(x=row[0], y=row[1], name="Tower {}".format(i), label="T{}".format(i))
+        for (i, antenna) in enumerate(self.__data):
+            self.__g.add_vertex(x=antenna.position['x'], y=antenna.position['y'], name=antenna.name, label=antenna.shortname, antenna=antenna)
 
         for (i, row) in enumerate(self.__g.vs):
             for j in range(i):
@@ -38,11 +42,15 @@ class GreedyAgent(Agent):
         colors = self._colouring_graph_(self.__g)
         gen_colors = GraphHelper.get_colors(colors)
         for (i, v) in enumerate(self.__g.vs):
+            v['antenna'].set_frequency(v['color'])
             v['color'] = gen_colors[v['color']]
         return colors
     
     def _colouring_graph_(self, G):
         pass
+
+    def get_data(self):
+        return self.__data
 
     def get_graph(self):
         return self.__g
