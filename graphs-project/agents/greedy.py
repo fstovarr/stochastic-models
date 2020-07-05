@@ -1,14 +1,10 @@
+from .agent import Agent
+
 import numpy as np
-from enum import Enum
 from graph_helper import GraphHelper
 from igraph import Graph, plot
 
-class AgentState(Enum):
-    """Enum that represents the possible states of the agent
-    """
-    COMPLETED = 1
-
-class NaiveAgent():
+class GreedyAgent(Agent):
     """Model of the agent who wants to fill its album through simulation
     """
 
@@ -39,15 +35,60 @@ class NaiveAgent():
         return self.__distances
 
     def solve(self):
-        colors = self.__colouring_graph__(self.__g)
+        colors = self._colouring_graph_(self.__g)
         gen_colors = GraphHelper.get_colors(colors)
         for (i, v) in enumerate(self.__g.vs):
             v['color'] = gen_colors[v['color']]
-        
         return colors
     
-    def __colouring_graph__(self, G):
-        adj = list(G.get_adjacency())
+    def _colouring_graph_(self, G):
+        pass
+
+    def get_graph(self):
+        return self.__g
+
+class DSaturAgent(GreedyAgent):
+    def _colouring_graph(self):
+        degrees = G.degree()
+    
+        available_colors = [True] * (len(G.vs))
+        colors = [None] * (len(G.vs))
+        max_color = 0
+        
+        vertices = dict()
+        for v in G.vs:
+            vertices[v.index] = (0, v.degree(), v.index)
+        
+        while len(vertices) > 0:
+            index, item = max(enumerate(vertices.values()), key=lambda p: p[1][0])        
+            vertex = G.vs[item[2]]
+            
+            for neighbor in vertex.neighbors():
+                if colors[neighbor.index] != None:
+                    available_colors[colors[neighbor.index]] = False
+
+            color = next(i for (i, value) in enumerate(available_colors) if value)
+            colors[vertex.index] = color
+            vertex["color"] = color
+            max_color = max(max_color, color)
+
+            for neighbor in vertex.neighbors():
+                if colors[neighbor.index] != None:
+                    available_colors[colors[neighbor.index]] = True
+                if neighbor.index in vertices:
+                    vertices[neighbor.index] = (
+                        vertices[neighbor.index][0] + 1, 
+                        vertices[neighbor.index][1], 
+                        vertices[neighbor.index][2]
+                    )
+            del vertices[vertex.index]
+            
+        return max_color + 1
+
+class NaiveAgent(GreedyAgent):
+    """Model of the agent who wants to fill its album through simulation
+    """
+    def _colouring_graph_(self, G):
         available_colors = [True] * (len(G.vs))
         colors = [None] * (len(G.vs))
         max_color = 0
@@ -58,6 +99,7 @@ class NaiveAgent():
                 if colors[neighbor.index] != None:
                     available_colors[colors[neighbor.index]] = False
                     indexes.append(colors[neighbor.index])
+            
             color = next(i for (i, value) in enumerate(available_colors) if value)
             colors[vertex.index] = color
             vertex["color"] = color
@@ -66,6 +108,3 @@ class NaiveAgent():
             for i in indexes:
                 available_colors[i] = True
         return max_color + 1
-
-    def get_graph(self):
-        return self.__g
