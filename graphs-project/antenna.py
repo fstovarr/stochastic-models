@@ -16,13 +16,13 @@ class Antenna():
     def set_frequency(self, frequency):
         self.__frequency = frequency
 
-    def __calc_signal__(self):
+    def __calc_signal__(self, distance):
         if self.__frequency == None:
             raise Exception("Frequency not assigned")
 
         signal = [0] * self.__total
-        signal[self.__frequency] = 1
+        signal[self.__idx] = 1
         return signal
     
-    def to_s(self):
-        return "{} | Frequency: {}".format(self.idx, self.__frequency)
+    def __str__(self):
+        return "<index {}, frequency {}>".format(self.__idx, self.__frequency)

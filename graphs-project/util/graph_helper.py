@@ -77,5 +77,5 @@ class GraphHelper:
         ax.artists.append(graph_artist)
         
         if fig != None:
-            return fig
+            return fig, ax
         return ax
