@@ -1,16 +1,16 @@
-from .agent import Agent
+import sys
+sys.path.append('..')
 
-class DummyAgent(Agent):
-    def __init__(self, nodes, radio):
-        self.__data = nodes
+from .graph_agent import GraphAgent
+from igraph import Graph
+from util.graph_helper import GraphHelper
+
+class DummyAgent(GraphAgent):
+    def _build_graph_(self, data):
+        for (i, antenna) in enumerate(self._data):
+            self._g.add_vertex(x=antenna.position['x'], y=antenna.position['y'], name=antenna.name, label=antenna.shortname, antenna=antenna)
 
     def solve(self):
-        for d in self.__data:
-            print(d)
+        for d in self._data:
             d.set_frequency(0)
-
-        # map(lambda a: a.set_frequency(0), self.__data)
-        print("----------")
-
-        for d in self.__data:
-            print(d)
+        self._frequencies = 1

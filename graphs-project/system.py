@@ -11,7 +11,7 @@ class System():
     def __init__(self, antennas=10, bounds=((0, 0), (1, 0), (1, 1), (0, 1)), seed=0, verbose=False):
         rd.seed(seed)
 
-        self.__antennas = [Antenna(i, rd.rand(), rd.rand(), antennas) for i in range(antennas)]
+        self.__antennas = [Antenna(i, rd.rand(), rd.rand(), antennas, .05) for i in range(antennas)]
         self.__analyzer = SpectrumAnalyzer(bounds, verbose=True)
     
     def step(self):

@@ -1,14 +1,12 @@
 import sys
 sys.path.append("..")
 
-from .agent import Agent
-
+from .graph_agent import GraphAgent
 import numpy as np
-
 from util.graph_helper import GraphHelper
 from igraph import Graph, plot
 
-class GreedyAgent(Agent):
+class GreedyAgent(GraphAgent):
     """Model of the agent who wants to fill its album through simulation
     """
 
@@ -19,29 +17,26 @@ class GreedyAgent(Agent):
             album_sheets (int, optional): Album total sheets. Defaults to 700.
             idx (int, optional): Agent Identifier. Defaults to 0.
         """
-        self.__radio = radio
-        self.__g = Graph()
-        self.__data = nodes
         self.__distances = np.zeros((len(nodes), len(nodes)))
-        self.__build_graph(nodes)
+        super().__init__(nodes, radio * 2)
     
-    def __build_graph(self, data):
-        for (i, antenna) in enumerate(self.__data):
-            self.__g.add_vertex(x=antenna.position['x'], y=antenna.position['y'], name=antenna.name, label=antenna.shortname, antenna=antenna)
+    def _build_graph_(self, data):
+        for (i, antenna) in enumerate(self._data):
+            self._g.add_vertex(x=antenna.position['x'], y=antenna.position['y'], name=antenna.name, label=antenna.shortname, antenna=antenna)
 
-        for (i, row) in enumerate(self.__g.vs):
+        for (i, row) in enumerate(self._g.vs):
             for j in range(i):
-                self.__distances[i][j] = self.__distances[j][i] = GraphHelper.calc_distance(row, self.__g.vs[j])
-                if self.__distances[i][j] <= self.__radio:
-                    self.__g.add_edge(self.__g.vs[i], self.__g.vs[j])
+                self.__distances[i][j] = self.__distances[j][i] = GraphHelper.calc_distance(row, self._g.vs[j])
+                if self.__distances[i][j] <= self._radio:
+                    self._g.add_edge(self._g.vs[i], self._g.vs[j])
     
     def distances(self):
         return self.__distances
 
     def solve(self):
-        colors = self._colouring_graph_(self.__g)
+        colors = self._colouring_graph_(self._g)
         gen_colors = GraphHelper.get_colors(colors)
-        for (i, v) in enumerate(self.__g.vs):
+        for (i, v) in enumerate(self._g.vs):
             v['antenna'].set_frequency(v['color'])
             v['color'] = gen_colors[v['color']]
         return colors
@@ -49,14 +44,8 @@ class GreedyAgent(Agent):
     def _colouring_graph_(self, G):
         pass
 
-    def get_data(self):
-        return self.__data
-
-    def get_graph(self):
-        return self.__g
-
 class DSaturAgent(GreedyAgent):
-    def _colouring_graph(self):
+    def _colouring_graph_(self, G):
         degrees = G.degree()
     
         available_colors = [True] * (len(G.vs))
@@ -68,7 +57,13 @@ class DSaturAgent(GreedyAgent):
             vertices[v.index] = (0, v.degree(), v.index)
         
         while len(vertices) > 0:
-            index, item = max(enumerate(vertices.values()), key=lambda p: p[1][0])        
+            item = None
+            for i, v in enumerate(vertices.values()):
+                if item == None:
+                    item = v
+                elif v[0] > item[0] or (v[0] == item[0] and degrees[item[2]] > degrees[v[2]]):
+                    item = v
+            
             vertex = G.vs[item[2]]
             
             for neighbor in vertex.neighbors():
@@ -90,7 +85,9 @@ class DSaturAgent(GreedyAgent):
                         vertices[neighbor.index][2]
                     )
             del vertices[vertex.index]
-            
+        
+        self._frequencies = max_color + 1
+
         return max_color + 1
 
 class NaiveAgent(GreedyAgent):
@@ -115,4 +112,6 @@ class NaiveAgent(GreedyAgent):
 
             for i in indexes:
                 available_colors[i] = True
+        
+        self._frequencies = max_color + 1
         return max_color + 1
