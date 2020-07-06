@@ -6,11 +6,11 @@ from igraph import Graph
 from util.graph_helper import GraphHelper
 
 class GraphAgent(Agent):
-    def __init__(self, nodes, radio):
+    def __init__(self, nodes):
         super().__init__()
 
         self._data = nodes
-        self._radio = radio
+        self._radio = nodes[0].get_radio() * 2
         self._g = Graph()
         self._build_graph_(nodes)
 

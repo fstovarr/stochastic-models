@@ -48,7 +48,7 @@ class SpectrumAnalyzer():
         self.__direction['rad'] = direction * pi / 180
         
         if self.__verbose:
-            print("Dir ", self.__direction, self.position)
+            print("Direction {}, position: {} ".format(self.__direction, self.position))
 
     def record_signals(self, antennas):
         perceived = dict()

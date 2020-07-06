@@ -1,6 +1,7 @@
 from system import System
 from observer import Observer
 from agents.greedy import NaiveAgent, DSaturAgent
+from agents.dummy_agent import DummyAgent
 
 class Environment():
     """Representation of the environment in which the system and the observer will perform
@@ -13,12 +14,15 @@ class Environment():
         # self.__observer = Observer()
 
     @classmethod
-    def create(cls, system, agent, radio=0.3, limit_time=40000):
+    def create(cls, agent, limit_time=40000, seed=0):
+        sys = System(seed=seed)
         if agent == 'dsatur':
-            agent = DSaturAgent(system.get_antennas(), radio)
+            agent = DSaturAgent(sys.get_antennas())
         elif agent == 'naive':
-            agent = NaiveAgent(system.get_antennas(), radio)
-        return cls(system, agent, limit_time=limit_time)
+            agent = NaiveAgent(sys.get_antennas())
+        elif agent == 'dummy':
+            agent = DummyAgent(sys.get_antennas())
+        return cls(sys, agent, limit_time=limit_time)
 
     def start(self):
         self.__agent.solve()
@@ -30,3 +34,6 @@ class Environment():
         if self.__limit_time == self.__time:
             print("LIMIT REACHED")
         print("Simulation ended")
+
+    def get_agent(self):
+        return self.__agent

@@ -1,16 +1,15 @@
+from math import log10
+
 class PropagationModel:
-    def log_propagation(t, t1, txPowerDbm=50):
-        m_frequency = 9e8
-        m_referenceDistance = 0.2
-        m_exponent = 3
-        m_referenceLoss=46.6777
+    @staticmethod
+    def log(distance, tx_power_dbm, frequency, reference_distance=0.2):
+        exponent = 3
+        reference_loss = 46.6777
 
-        distance = GraphHelper.calc_distance(t, t1)
+        if distance <= reference_distance:
+            return tx_power_dbm - reference_loss
 
-        if distance <= m_referenceDistance:
-            return [distance, txPowerDbm - m_referenceLoss]
+        path_loss_db = 10 * exponent * log10 (distance / reference_distance)
+        rxc = - reference_loss - path_loss_db
 
-        pathLossDb = 10 * m_exponent * log10 (distance / m_referenceDistance)
-        rxc = -m_referenceLoss - pathLossDb
-
-        return [distance, txPowerDbm + rxc]
+        return tx_power_dbm + rxc

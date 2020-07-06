@@ -10,7 +10,7 @@ class GreedyAgent(GraphAgent):
     """Model of the agent who wants to fill its album through simulation
     """
 
-    def __init__(self, nodes, radio):
+    def __init__(self, nodes):
         """Class constructor
 
         Args:
@@ -18,7 +18,7 @@ class GreedyAgent(GraphAgent):
             idx (int, optional): Agent Identifier. Defaults to 0.
         """
         self.__distances = np.zeros((len(nodes), len(nodes)))
-        super().__init__(nodes, radio * 2)
+        super().__init__(nodes)
     
     def _build_graph_(self, data):
         for (i, antenna) in enumerate(self._data):
