@@ -34,5 +34,8 @@ class System():
     def get_antennas(self):
         return self.__antennas
 
+    def get_analyzer(self):
+        return self.__analyzer
+
     def set_frequencies(self, frequencies):
         pass

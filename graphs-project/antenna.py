@@ -26,6 +26,9 @@ class Antenna():
     def set_frequency(self, frequency):
         self.__frequency = frequency
 
+    def get_frequency(self):
+        return self.__frequency
+        
     def __calc_signal__(self, distance):
         if self.__frequency == None:
             raise Exception("Frequency not assigned")
