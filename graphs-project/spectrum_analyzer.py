@@ -5,6 +5,19 @@ from util.graph_helper import GraphHelper
 
 class SpectrumAnalyzer():
     def __init__(self, bounds, speed=0.01, initial_direction=None, initial_position={'x': 0, 'y': 0}, verbose=False, seed=0):
+        """Analizador del espectro electromagnético en la simulación
+
+        Args:
+            bounds (tuple): Tupla de tuplas, que contiene las coordenadas de los límites del espacio de movimiento
+                iniciando desde la esquina superior izquierda y siguiendo en sentido horario
+            speed (float, optional): Velocidad del movimiento del analizador de espectro (unidades/paso). Defaults to 0.01.
+            initial_direction (int, optional): Dirección inicial en grados (0, 360). Defaults to None.
+            initial_position (dict | tuple, optional): Tupla o diccionario contenteniendo las coordenadas iniciales (x,y) del 
+                analizador. Defaults to {'x': 0, 'y': 0}.
+            verbose (bool, optional): Modo verboso. Defaults to False.
+            seed (int, optional): Semilla para generar los números aleatorios. Defaults to 0.
+        """
+        
         rd.seed(seed)
 
         if type(initial_position) is tuple:
@@ -24,13 +37,11 @@ class SpectrumAnalyzer():
     def move(self):
         flag = False
 
-        # while not flag:
         alpha = (90 - self.__direction['deg']) % 360
         c = sin(alpha * pi / 180) * self.__speed + self.position['x']
         d = sin(self.__direction['rad']) * self.__speed + self.position['y']
 
         if not self.__in_bounds__({'x': c, 'y': d}): 
-            # self.position = self.__adjust_to_bounds__(self.position)
             self.change_direction()
         else:
             self.position['x'] = c

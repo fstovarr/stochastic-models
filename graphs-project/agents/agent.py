@@ -5,6 +5,11 @@ class Agent:
         self._frequencies = 0
 
     def get_frequencies(self):
+        """Get the number of frequencies used by this agent
+
+        Returns:
+            int: Number of frequencies
+        """
         return self._frequencies
 
     def reset(self):
@@ -13,4 +18,6 @@ class Agent:
         pass
 
     def solve(self):
+        """Solve the problem
+        """
         pass

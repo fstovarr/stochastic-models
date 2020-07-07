@@ -7,15 +7,11 @@ from util.graph_helper import GraphHelper
 from igraph import Graph, plot
 
 class GreedyAgent(GraphAgent):
-    """Model of the agent who wants to fill its album through simulation
-    """
-
     def __init__(self, nodes):
         """Class constructor
 
         Args:
-            album_sheets (int, optional): Album total sheets. Defaults to 700.
-            idx (int, optional): Agent Identifier. Defaults to 0.
+            nodes (list): Antennas to build the graph.
         """
         self.__distances = np.zeros((len(nodes), len(nodes)))
         super().__init__(nodes)
@@ -91,8 +87,6 @@ class DSaturAgent(GreedyAgent):
         return max_color + 1
 
 class NaiveAgent(GreedyAgent):
-    """Model of the agent who wants to fill its album through simulation
-    """
     def _colouring_graph_(self, G):
         available_colors = [True] * (len(G.vs))
         colors = [None] * (len(G.vs))

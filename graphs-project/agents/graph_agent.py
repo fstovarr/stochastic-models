@@ -7,6 +7,11 @@ from util.graph_helper import GraphHelper
 
 class GraphAgent(Agent):
     def __init__(self, nodes):
+        """Agente abstracto que permite resolver el problema mediante manipulación de grafos
+
+        Args:
+            nodes (list): Lista de antenas para armar el grafo
+        """
         super().__init__()
 
         self._data = nodes

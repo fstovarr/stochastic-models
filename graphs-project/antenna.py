@@ -2,6 +2,18 @@ from util.propagation_model import PropagationModel
 
 class Antenna():
     def __init__(self, idx, x, y, total, radio, frequency=None, verbose=False, tx_power=50, freq=9e8):
+        """Antena que simula la transmisión de las señales 
+
+        Args:
+            idx (int): Identificador de la antena
+            x (double): Posición de la antena en el eje coordenado x
+            y (double): Posición de la antena en el eje coordenado y
+            total (int): Cantidad de antenas total en el sistema
+            radio (double): Radio de referencia indicando el máximo alcance
+            frequency (int, optional): Selección de la banda de frecuencia donde transmitirá. Defaults to None.
+            tx_power (int, optional): Poder de transmisión en dBm. Defaults to 50.
+            verbose (bool, optional): Modo verboso. Defaults to False.
+        """
         self.position = {'x': x, 'y': y}
         self.__total = total
         self.__frequency = frequency

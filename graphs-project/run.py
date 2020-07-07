@@ -10,14 +10,18 @@ __author__ = "Fabio Steven Tovar Ramos"
 __version__ = "1.0"
 __email__ = "fstovarr@unal.edu.co"
 
-def start(data, seed):
-    print(data)
-    
+def start(data, seed):    
     for d in data:
         antennas, agent_type = d
 
         try:
-            env = Environment.create(agent_type, antennas=antennas, limit_time=100, seed=1, verbose=False)
+            env = Environment.create(
+                agent_type,
+                antennas=antennas,
+                limit_time=100,
+                seed=1,
+                verbose=False
+            )
             env.start()
         except Exception as err:
             print("error with {}, {} | {}".format(agent_type, antennas, err))

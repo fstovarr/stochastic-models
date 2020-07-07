@@ -12,7 +12,6 @@ class Observer():
         adj = str(list(g.get_adjacency()))
         
         frequencies = str([d.get_frequency() for d in agent.get_data()])
-        print(frequencies)
 
         metrics = "{};{};{};{};{};{}\n".format(time, str(type(agent)).split(".")[-1].replace("'>", ""), adj, frequencies, agent.get_frequencies(), analyzer.get_overlapping())
         if metrics != "":

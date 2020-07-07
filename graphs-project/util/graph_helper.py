@@ -10,6 +10,14 @@ from math import sqrt
 class GraphHelper:
     @staticmethod
     def get_colors(n):
+        """Get n colors visually distinguishable
+
+        Args:
+            n (int): Number of colors
+
+        Returns:
+            list: List of n strings which represents colors in format hsl
+        """
         colors = []
         for i in range(0, 360, 360 // n):
             colors.append('hsl(%d, %d%%, %d%%)' % (i, 90 + np.random.rand() * 10, 50 + np.random.rand() * 10))
