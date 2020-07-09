@@ -1,6 +1,8 @@
 from math import log10
 
 class PropagationModel:
+    """Log distance path loss propagation model to simulate a real environment
+    """
     @staticmethod
     def log(distance, tx_power_dbm, frequency, reference_distance=0.2):
         exponent = 3

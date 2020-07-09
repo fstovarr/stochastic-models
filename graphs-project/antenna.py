@@ -1,18 +1,18 @@
 from util.propagation_model import PropagationModel
 
 class Antenna():
-    def __init__(self, idx, x, y, total, radio, frequency=None, verbose=False, tx_power=50, freq=9e8):
-        """Antena que simula la transmisión de las señales 
+    def __init__(self, idx, x, y, total, radius, frequency=None, verbose=False, tx_power=50, freq=9e8):
+        """Antenna that simulate the signals transmission
 
         Args:
-            idx (int): Identificador de la antena
-            x (double): Posición de la antena en el eje coordenado x
-            y (double): Posición de la antena en el eje coordenado y
-            total (int): Cantidad de antenas total en el sistema
-            radio (double): Radio de referencia indicando el máximo alcance
-            frequency (int, optional): Selección de la banda de frecuencia donde transmitirá. Defaults to None.
-            tx_power (int, optional): Poder de transmisión en dBm. Defaults to 50.
-            verbose (bool, optional): Modo verboso. Defaults to False.
+            idx (int): Antenna id
+            x (double): x-axis position of the antenna
+            y (double): y-axis position of the antenna
+            total (int): Antennas in the system
+            radius (double): Reference radius indicating the maximum range
+            frequency (int, optional): Antenna frequency band. Defaults to None.
+            tx_power (int, optional): Power transmission in dBm. Defaults to 50.
+            verbose (bool, optional): Verbose mode. Defaults to False.
         """
         self.position = {'x': x, 'y': y}
         self.__total = total
@@ -22,13 +22,13 @@ class Antenna():
         self.__tx_power = tx_power
         self.__freq = freq
 
-        self.__radio = radio
+        self.__radius = radius
         
         self.name = "Tower {}".format(idx)
         self.shortname = "T{}".format(idx)
 
     def get_radio(self):
-        return self.__radio
+        return self.__radius
 
     def get_signal(self, distance):
         if self.__frequency == None:
@@ -46,7 +46,7 @@ class Antenna():
             raise Exception("Frequency not assigned")
         
         if self.__verbose:
-            print(self.__idx, distance, self.__radio)
+            print(self.__idx, distance, self.__radius)
 
         loss = PropagationModel.log(distance, self.__tx_power, self.__freq)
 

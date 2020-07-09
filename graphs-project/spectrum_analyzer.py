@@ -5,17 +5,15 @@ from util.graph_helper import GraphHelper
 
 class SpectrumAnalyzer():
     def __init__(self, bounds, speed=0.01, initial_direction=None, initial_position={'x': 0, 'y': 0}, verbose=False, seed=0):
-        """Analizador del espectro electromagnético en la simulación
+        """Spectrum analyzer constructor
 
         Args:
-            bounds (tuple): Tupla de tuplas, que contiene las coordenadas de los límites del espacio de movimiento
-                iniciando desde la esquina superior izquierda y siguiendo en sentido horario
-            speed (float, optional): Velocidad del movimiento del analizador de espectro (unidades/paso). Defaults to 0.01.
-            initial_direction (int, optional): Dirección inicial en grados (0, 360). Defaults to None.
-            initial_position (dict | tuple, optional): Tupla o diccionario contenteniendo las coordenadas iniciales (x,y) del 
-                analizador. Defaults to {'x': 0, 'y': 0}.
-            verbose (bool, optional): Modo verboso. Defaults to False.
-            seed (int, optional): Semilla para generar los números aleatorios. Defaults to 0.
+            bounds (tuple): Tuple with coordinates of the spacial system bounds. It starts from top-left and continues clockwise
+            speed (float, optional): Speed of spectrum analyzer. Defaults to 0.01.
+            initial_direction (int, optional): Initial direction in degrees (0, 360). Defaults to None.
+            initial_position (dict | tuple, optional): Tuple or dict containing initial coordinates (x,y) of the analyzer. Defaults to {'x': 0, 'y': 0}.
+            verbose (bool, optional): Verbose mode. Defaults to False.
+            seed (int, optional): Seed of random generator. Defaults to 0.
         """
         
         rd.seed(seed)

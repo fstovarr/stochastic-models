@@ -5,13 +5,13 @@ from agents.dummy_agent import DummyAgent
 
 class Environment():
     def __init__(self, system, agent, limit_time=40000, verbose=False):
-        """Ambiente de ejecución
+        """Environment constructor
 
         Args:
-            system (System): Sistema que actuará sobre el ambiente
-            agent (Agent): Agente que resolverá el problema
-            limit_time (int, optional): Tiempo límite de la simulación. Defaults to 40000.
-            verbose (bool, optional): Modo verboso. Defaults to False.
+            system (System): Systems that will be perform in the environment
+            agent (Agent): Agent which will solve the problem
+            limit_time (int, optional): Simulation limit time. Defaults to 40000.
+            verbose (bool, optional): Verbose mode. Defaults to False.
         """
         self.__time = 0
         self.__limit_time = limit_time
@@ -24,14 +24,14 @@ class Environment():
         """Función para crear un ambiente completo
 
         Args:
-            agent (string | Agent): Agente de la simulación
-            antennas (int, optional): Número de antenas. Defaults to 10.
-            limit_time (int, optional): Tiempo límite de simulación. Defaults to 40000.
-            seed (int, optional): Seed del generador de números aleatorios. Defaults to 0.
-            verbose (bool, optional): Modo verboso. Defaults to False.
+            agent (string | Agent): Simulation agent
+            antennas (int, optional): Number of antennas. Defaults to 10.
+            limit_time (int, optional): Simulation limit time. Defaults to 40000.
+            seed (int, optional): Seed of random generator. Defaults to 0.
+            verbose (bool, optional): Verbose mode. Defaults to False.
 
         Returns:
-            Environment: Ambiente creado de acuerdo a las características solicitadas
+            Environment
         """
         sys = System(antennas=antennas, seed=seed)
         if isinstance(agent, str):

@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     print("Running in {} processes".format(procs))
 
-    antennas = [5, 10, 15, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
+    antennas = [5]#, 10, 15, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
     agents = ['naive', 'dummy', 'dsatur']
 
     random.shuffle(antennas)

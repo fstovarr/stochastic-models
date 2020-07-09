@@ -9,16 +9,15 @@ from scipy.optimize import fsolve
 
 class System():
     def __init__(self, bounds=((0, 0), (1, 0), (1, 1), (0, 1)), antennas=10, csv_file=None, seed=0, verbose=False):
-        """Sistema contenedor de las antenas y el analizador, junto con su interacción
+        """System that contains the antennas and the analyzer
 
         Args:
-            bounds (tuple, optional): Tupla de tuplas, que contiene las coordenadas de los límites del espacio de movimiento
-                iniciando desde la esquina superior izquierda y siguiendo en sentido horario. Defaults to ((0, 0), (1, 0), (1, 1), (0, 1)).
-            antennas (int, optional): Cantidad de antenas a generar aleatoriamente. Defaults to 10.
-            csv_file ([type], optional): Ruta relativa del archivo CSV que permite cargar antenas personalizadas, si es diferente de None, 
-                el anterior argumento es ignorado. Defaults to None.
-            seed (int, optional): Semilla para generar números aleatorios. Defaults to 0.
-            verbose (bool, optional): Modo verboso. Defaults to False.
+            bounds (tuple): Tuple with coordinates of the spacial system bounds. It starts from top-left and continues clockwise.
+            antennas (int, optional): Number of randomly generated antennas. Defaults to 10.
+            csv_file ([type], optional): Path of CSV to load custom antennas, if it is different to None, the previous argument 
+            is ignored. Defaults to None.
+            verbose (bool, optional): Verbose mode. Defaults to False.
+            seed (int, optional): Seed of random generator. Defaults to 0.
         """
         rd.seed(seed)
         tx_power = 50

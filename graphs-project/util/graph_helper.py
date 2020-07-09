@@ -67,10 +67,26 @@ class GraphHelper:
         Returns:
             float -- Distance between vectors
         """
+        if type(v1) is tuple:
+            v1 = {'x': v1[0], 'y': v1[1]}        
+        if type(v2) is tuple:
+            v2 = {'x': v2[0], 'y': v2[1]}
+
         return sqrt((v2['x'] - v1['x']) ** 2 + (v2['y'] - v1['y']) ** 2)
     
     @staticmethod
     def plot(graph, figsize=(10, 10), fig=None, ax=None):
+        """Plot a given graph through matplotlib library
+
+        Args:
+            graph (iGraph): iGraph instance
+            figsize (tuple, optional): Figure size. Defaults to (10, 10).
+            fig ([type], optional): Matplotlib figure. Defaults to None.
+            ax ([type], optional): Matplotlib axes. Defaults to None.
+
+        Returns:
+            ax, fig: Axes and figure to plot with matplotlib
+        """
         matplotlib.use("cairo")        
         if ax == None:
             fig = plt.figure(figsize=figsize)
